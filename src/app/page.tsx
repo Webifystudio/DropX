@@ -5,6 +5,7 @@ import { ProductList } from "@/components/products/product-list";
 import { Search, Star, Smartphone, Shirt, Home as HomeIcon, Heart, Truck, Play, Video, Music } from "lucide-react";
 import Link from "next/link";
 import { ProductCard } from "@/components/products/product-card";
+import { Card, CardContent } from "@/components/ui/card";
 
 const categoryIcons = {
   Electronics: <Smartphone className="text-blue-600" />,
@@ -41,6 +42,15 @@ export default function Home() {
           </div>
       </div>
       <main className="container mx-auto px-4 py-6">
+        <section className="mb-8" data-aos="fade-up">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardContent className="p-6 text-center">
+                    <h2 className="text-3xl font-bold text-blue-800 font-headline">Welcome to DropX</h2>
+                    <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Your destination for the latest trends and top products. Discover unbeatable deals and find your next favorite item today.</p>
+                </CardContent>
+            </Card>
+        </section>
+
         <section className="mb-8" data-aos="fade-up">
             <h2 className="text-lg font-semibold mb-4">Shop by Category</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
