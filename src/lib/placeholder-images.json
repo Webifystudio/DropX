@@ -1,3 +1,24 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    { "id": "1", "imageUrl": "https://picsum.photos/seed/1/600/600", "imageHint": "headphones audio" },
+    { "id": "2", "imageUrl": "https://picsum.photos/seed/2/600/600", "imageHint": "headphone lifestyle" },
+    { "id": "3", "imageUrl": "https://picsum.photos/seed/3/600/600", "imageHint": "smartwatch technology" },
+    { "id": "4", "imageUrl": "https://picsum.photos/seed/4/600/600", "imageHint": "watch wrist" },
+    { "id": "5", "imageUrl": "https://picsum.photos/seed/5/600/600", "imageHint": "bomber jacket" },
+    { "id": "6", "imageUrl": "https://picsum.photos/seed/6/600/600", "imageHint": "man fashion" },
+    { "id": "7", "imageUrl": "https://picsum.photos/seed/7/600/600", "imageHint": "woman jeans" },
+    { "id": "8", "imageUrl": "https://picsum.photos/seed/8/600/600", "imageHint": "denim style" },
+    { "id": "9", "imageUrl": "https://picsum.photos/seed/9/600/600", "imageHint": "espresso machine" },
+    { "id": "10", "imageUrl": "https://picsum.photos/seed/10/600/600", "imageHint": "coffee cup" },
+    { "id": "11", "imageUrl": "https://picsum.photos/seed/11/600/600", "imageHint": "cookware kitchen" },
+    { "id": "12", "imageUrl": "https://picsum.photos/seed/12/600/600", "imageHint": "cooking pan" },
+    { "id": "13", "imageUrl": "https://picsum.photos/seed/13/600/600", "imageHint": "book cover" },
+    { "id": "14", "imageUrl": "https://picsum.photos/seed/14/600/600", "imageHint": "reading book" },
+    { "id": "15", "imageUrl": "https://picsum.photos/seed/15/600/600", "imageHint": "yoga mat" },
+    { "id": "16", "imageUrl": "https://picsum.photos/seed/16/600/600", "imageHint": "yoga pose" },
+    { "id": "17", "imageUrl": "https://picsum.photos/seed/17/600/600", "imageHint": "bluetooth speaker" },
+    { "id": "18", "imageUrl": "https://picsum.photos/seed/18/600/600", "imageHint": "music lifestyle" },
+    { "id": "19", "imageUrl": "https://picsum.photos/seed/19/600/600", "imageHint": "men watch" },
+    { "id": "20", "imageUrl": "https://picsum.photos/seed/20/600/600", "imageHint": "watch detail" }
+  ]
 }
