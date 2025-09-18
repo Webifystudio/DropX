@@ -6,11 +6,12 @@ import { CartProvider } from "@/context/cart-context";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "DropX India",
+  title: "DropX India - Online Shopping",
   description: "Your one-stop shop for everything.",
 };
 
@@ -22,24 +23,33 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+        <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
       </head>
       <body
         className={cn(
-          "min-h-screen bg-background font-body antialiased",
+          "min-h-screen bg-gray-50 font-sans antialiased",
           inter.variable
         )}
       >
         <CartProvider>
           <div className="relative flex min-h-screen flex-col">
             <Header />
-            <main className="flex-1 pb-20 md:pb-0">{children}</main>
+            <main className="flex-1 pb-20">{children}</main>
             <BottomNav />
           </div>
           <Toaster />
         </CartProvider>
+        <Script src="https://unpkg.com/aos@2.3.1/dist/aos.js" />
+        <Script id="aos-init">
+          {`
+            AOS.init({
+              duration: 800,
+              easing: 'ease-in-out',
+              once: true
+            });
+          `}
+        </Script>
       </body>
     </html>
   );

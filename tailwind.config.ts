@@ -10,13 +10,14 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: '1rem',
       screens: {
         '2xl': '1400px',
       },
     },
     extend: {
       fontFamily: {
+        sans: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],
         code: ['monospace'],
@@ -102,5 +103,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/line-clamp')],
 } satisfies Config;
