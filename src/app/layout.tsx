@@ -41,6 +41,7 @@ export default function RootLayout({
           <Toaster />
         </CartProvider>
         <Script src="https://unpkg.com/aos@2.3.1/dist/aos.js" />
+        <Script src="https://unpkg.com/feather-icons" />
         <Script id="aos-init">
           {`
             AOS.init({
@@ -48,6 +49,13 @@ export default function RootLayout({
               easing: 'ease-in-out',
               once: true
             });
+            
+            // Using a timeout to ensure feather is loaded.
+            setTimeout(() => {
+              if (typeof feather !== 'undefined') {
+                feather.replace();
+              }
+            }, 50);
           `}
         </Script>
       </body>
