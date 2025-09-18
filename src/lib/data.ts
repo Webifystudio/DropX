@@ -6,6 +6,7 @@ export const categories: Category[] = [
   { id: 'home-kitchen', name: 'Home & Kitchen' },
   { id: 'books', name: 'Books' },
   { id: 'sports', name: 'Sports' },
+  { id: 'prime-video', name: 'Prime Video' },
 ];
 
 export const products: Product[] = [
