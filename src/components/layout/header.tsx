@@ -10,16 +10,14 @@ import { Button } from '../ui/button';
 
 export default function Header() {
   const { cartCount } = useCart();
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-
+  
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4 transition-all duration-300">
           <div
             className={cn(
-              'flex items-center space-x-2 transition-all duration-300',
-              { 'w-0 opacity-0 md:w-auto md:opacity-100': isSearchExpanded }
+              'flex items-center space-x-2 transition-all duration-300'
             )}
           >
             <Button variant="ghost" size="icon" className="md:hidden">
@@ -27,7 +25,7 @@ export default function Header() {
             </Button>
             <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
               <h1 className="text-xl font-bold text-blue-600">DropX</h1>
-              <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded hidden sm:inline">
+              <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
                 India
               </span>
             </Link>
@@ -36,34 +34,22 @@ export default function Header() {
           <div
             className={cn('relative flex-1 flex items-center gap-2 transition-all duration-300')}
           >
-            {isSearchExpanded && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setIsSearchExpanded(false)}
-              >
-                <ArrowLeft />
-              </Button>
-            )}
-             <div className="relative w-full">
+             <Link href="/search" className="relative w-full">
                 <Input
                     type="text"
                     placeholder="Search for products, brands and more..."
                     className={cn(
-                    'w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    'w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer'
                     )}
-                    onFocus={() => setIsSearchExpanded(true)}
-                    onBlur={() => setIsSearchExpanded(false)}
+                    readOnly
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
-            </div>
+            </Link>
           </div>
 
           <div
             className={cn(
-              'flex items-center space-x-4 transition-all duration-300',
-              { 'w-0 opacity-0 md:w-auto md:opacity-100': isSearchExpanded }
+              'flex items-center space-x-4 transition-all duration-300'
             )}
           >
             <Link href="/cart" className="relative">
