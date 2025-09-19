@@ -45,7 +45,7 @@ export function HeroSlider() {
   )
 
   return (
-    <section className="relative h-[calc(100vh-56px)] w-full">
+    <section className="relative h-screen w-full">
       <Carousel
         plugins={[plugin.current]}
         className="w-full h-full"
