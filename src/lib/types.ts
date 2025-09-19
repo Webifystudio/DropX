@@ -56,3 +56,12 @@ export type Order = {
   shippingAddress: ShippingAddress;
   profit?: number;
 };
+
+export type Notification = {
+  id: string;
+  title: string;
+  description: string;
+  date: any; // Firebase Timestamp
+  read: boolean;
+  link?: string; // Optional link to the order
+};

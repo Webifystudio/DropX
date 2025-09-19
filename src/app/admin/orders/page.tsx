@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -68,6 +68,40 @@ export default function AdminOrdersPage() {
     return () => unsubscribe();
   }, []);
   
+  const createNotification = async (orderId: string, status: string) => {
+    let title = '';
+    let description = '';
+    
+    switch (status) {
+        case 'Confirmed':
+            title = 'Order Confirmed';
+            description = `Order #${orderId.slice(-6)} has been confirmed and is ready for processing.`;
+            break;
+        case 'Shipped':
+            title = 'Order Shipped';
+            description = `Order #${orderId.slice(-6)} has been shipped.`;
+            break;
+        case 'Delivered':
+            title = 'Order Delivered';
+            description = `Order #${orderId.slice(-6)} has been successfully delivered.`;
+            break;
+        case 'Cancelled':
+            title = 'Order Cancelled';
+            description = `Order #${orderId.slice(-6)} has been cancelled.`;
+            break;
+        default:
+            return;
+    }
+    
+    await addDoc(collection(db, "notifications"), {
+        title,
+        description,
+        date: Timestamp.now(),
+        read: false,
+        link: `/admin/orders`,
+    });
+  };
+
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     const orderRef = doc(db, 'orders', orderId);
     try {
@@ -79,6 +113,7 @@ export default function AdminOrdersPage() {
             }
         } else {
             await updateDoc(orderRef, { status });
+            await createNotification(orderId, status);
             toast({ title: "Order Status Updated", description: `Order #${orderId.slice(-6)} is now ${status}.` });
         }
     } catch (error) {
@@ -91,6 +126,7 @@ export default function AdminOrdersPage() {
         const orderRef = doc(db, 'orders', selectedOrder.id);
         try {
             await updateDoc(orderRef, { status: 'Delivered', profit });
+            await createNotification(selectedOrder.id, 'Delivered');
             toast({ title: "Order Delivered!", description: `Profit of ₹${profit} recorded.` });
             setIsProfitModalOpen(false);
             setProfit(0);

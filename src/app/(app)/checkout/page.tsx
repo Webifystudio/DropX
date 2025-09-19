@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -60,12 +61,21 @@ export default function CheckoutPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-        await addDoc(collection(db, "orders"), {
+        const orderDocRef = await addDoc(collection(db, "orders"), {
             date: Timestamp.now(),
             total: cartTotal,
             status: "Processing",
             items: cartItems,
             shippingAddress: values,
+        });
+
+        // Create a notification for the new order
+        await addDoc(collection(db, "notifications"), {
+            title: "New Order Received",
+            description: `Order #${orderDocRef.id.slice(-6)} for ₹${cartTotal.toLocaleString('en-IN')} has been placed.`,
+            date: Timestamp.now(),
+            read: false,
+            link: `/admin/orders`,
         });
 
         clearCart();

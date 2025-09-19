@@ -11,16 +11,29 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { AddProductDialog } from '@/components/admin/add-product-dialog';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const sidebarNavItems = [
   { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
   { href: '/admin/products', icon: Package, label: 'Products' },
   { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
+  { href: '/admin/notifications', icon: Bell, label: 'Notifications' },
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const q = query(collection(db, 'notifications'), where('read', '==', false));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setUnreadCount(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-50/50 relative">
@@ -36,20 +49,22 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  'p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors',
+                  'relative p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors',
                   isActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'text-muted-foreground'
                 )}
                 aria-label={item.label}
               >
                 <item.icon className="h-6 w-6" />
+                {item.label === 'Notifications' && unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             )
           })}
         </nav>
         <div className="flex-shrink-0 flex flex-col items-center space-y-4 py-4">
-            <button className="p-3 text-muted-foreground hover:text-accent-foreground rounded-lg hover:bg-accent">
-                <Bell className="h-6 w-6" />
-            </button>
             <Avatar>
               <AvatarImage src={`https://avatar.vercel.sh/${user?.email}.png`} alt={user?.email || ''} />
               <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
