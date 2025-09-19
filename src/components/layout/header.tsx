@@ -14,10 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useStore } from '@/context/store-context';
+import Image from 'next/image';
 
 export default function Header() {
   const { cartCount } = useCart();
   const { user, signOut } = useAuth();
+  const { store } = useStore();
   
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
@@ -27,11 +30,20 @@ export default function Header() {
             <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="text-gray-600" />
             </Button>
-            <Link href="/" className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold text-blue-600">DropX</h1>
-              <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                India
-              </span>
+            <Link href={store ? `/${store.id}`: "/"} className="flex items-center space-x-2">
+                {store?.logoUrl ? (
+                    <Image src={store.logoUrl} alt={store.id} width={32} height={32} className="rounded-full" />
+                ) : (
+                    <h1 className="text-xl font-bold text-blue-600">DropX</h1>
+                )}
+              
+              {store ? (
+                  <span className="text-xl font-bold">{store.id}</span>
+              ) : (
+                <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    India
+                </span>
+              )}
             </Link>
           </div>
           

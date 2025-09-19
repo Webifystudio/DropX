@@ -39,7 +39,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex-grow flex flex-col justify-between">
                     <div>
-                        <Link href={`/${product.id}`} className="font-medium hover:text-primary">{product.name}</Link>
+                        <Link href={`/product/${product.id}`} className="font-medium hover:text-primary">{product.name}</Link>
                         <p className="text-lg font-semibold mt-1">₹{product.currentPrice.toLocaleString('en-IN')}</p>
                     </div>
                     <div className="flex items-center justify-between mt-2">

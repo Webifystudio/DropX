@@ -65,3 +65,10 @@ export type Notification = {
   read: boolean;
   link?: string; // Optional link to the order
 };
+
+export type Store = {
+  id: string; // This will be the subdomain/path
+  creatorId: string;
+  creatorEmail: string;
+  logoUrl?: string;
+};
