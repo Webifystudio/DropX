@@ -3,6 +3,7 @@ import { ProductList } from "@/components/products/product-list";
 import { Star, Smartphone, Shirt, Home as HomeIcon, Heart, Truck, Play, Video, Music } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
 const categoryIcons: { [key: string]: React.ReactElement } = {
   Electronics: <Smartphone className="text-blue-600" />,
@@ -96,7 +97,7 @@ export default function Home() {
                         <button className="mt-6 bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-blue-700 hover:to-blue-900 transition-all">Try Prime FREE</button>
                     </div>
                     <div className="flex justify-center">
-                        <img src="https://picsum.photos/seed/prime/320/240" alt="Prime" className="h-48 object-contain rounded-lg" data-ai-hint="gadgets technology" />
+                        <Image src="https://picsum.photos/seed/prime/320/240" alt="Prime" width={320} height={240} className="h-48 w-auto object-contain rounded-lg" data-ai-hint="gadgets technology" />
                     </div>
                 </div>
             </div>
