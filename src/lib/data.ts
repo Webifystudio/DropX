@@ -1,5 +1,5 @@
 
-import type { Product, Category, Review, Order, ProductCategory } from './types';
+import type { Product, Review, Order, ProductCategory } from './types';
 
 export const categories: ProductCategory[] = [
   {
@@ -51,7 +51,7 @@ export const categories: ProductCategory[] = [
     name: "Sports & Outdoors",
     subCategories: [
       { id: "fitness-equipment", name: "Fitness Equipment" },
-      { id: "camping-hiking", name, "Camping & Hiking" },
+      { id: "camping-hiking", name: "Camping & Hiking" },
       { id: "cycling", name: "Cycling" },
       { id: "team-sports", name: "Team Sports" },
       { id: "outdoor-apparel", name: "Outdoor Apparel" },
