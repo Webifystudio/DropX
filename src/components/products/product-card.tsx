@@ -11,8 +11,6 @@ type ProductCardProps = {
 export function ProductCard({ product }: ProductCardProps) {
   const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
   
-  // Using a link with scroll={false} to prevent the page from scrolling to the top
-  // The actual product view will be handled by the [productId] page which renders the drawer
   return (
     <Link href={`/${product.id}`} scroll={false} className="group block h-full">
       <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-md">
@@ -36,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <p className="text-xs text-muted-foreground mb-3 line-clamp-2 flex-grow">{product.description}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold">₹{product.currentPrice?.toLocaleString('en-IN')}</span>
-              {product.normalPrice && (
+              {product.normalPrice && product.normalPrice > product.currentPrice && (
                   <span className="text-xs text-muted-foreground line-through">₹{product.normalPrice.toLocaleString('en-IN')}</span>
               )}
             </div>

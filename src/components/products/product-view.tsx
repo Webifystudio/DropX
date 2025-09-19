@@ -13,7 +13,6 @@ import {
     CarouselContent,
     CarouselItem,
   } from "@/components/ui/carousel"
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type ProductViewProps = {
   product: Product;
@@ -21,12 +20,9 @@ type ProductViewProps = {
   setIsOpen: (isOpen: boolean) => void;
 };
 
-function getPlaceholderImage(id: string) {
-    const image = PlaceHolderImages.find((img) => img.id === id);
-    return image || { imageUrl: 'https://picsum.photos/seed/placeholder/600/600', imageHint: 'placeholder' };
-}
 
 export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
+  const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
 
   return (
     <Drawer.Root open={isOpen} onOpenChange={setIsOpen} shouldScaleBackground>
@@ -56,9 +52,7 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                 <div className="pt-4">
                     <Carousel className="w-full max-w-lg mx-auto">
                         <CarouselContent>
-                            {product.images.map((imageId, index) => {
-                                const { imageUrl, imageHint } = getPlaceholderImage(imageId);
-                                return (
+                            {(product.images || []).map((imageUrl, index) => (
                                 <CarouselItem key={index}>
                                     <div className="p-0 flex aspect-square items-center justify-center relative">
                                     <Image
@@ -66,12 +60,11 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                                         alt={`${product.name} - image ${index + 1}`}
                                         fill
                                         className="object-contain"
-                                        data-ai-hint={imageHint}
+                                        data-ai-hint="product photo"
                                     />
                                     </div>
                                 </CarouselItem>
-                                );
-                            })}
+                                ))}
                         </CarouselContent>
                     </Carousel>
                 </div>
@@ -79,18 +72,18 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                 <div className="mt-6">
                     <div className="flex justify-between items-start">
                         <div>
-                             <Badge variant="destructive" className="mb-2">-20%</Badge>
+                             {discount > 0 && <Badge variant="destructive" className="mb-2">-{discount}%</Badge>}
                              <p className="text-sm text-muted-foreground">WinterElegance</p>
                              <h1 className="text-2xl font-bold font-headline">{product.name}</h1>
                         </div>
                         <div className="flex items-center gap-1 text-right">
                             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                            <span className="font-bold">{product.rating}</span>
+                            <span className="font-bold">{product.rating || 'N/A'}</span>
                         </div>
                     </div>
                     
                     <div className="mt-4 flex justify-between items-center">
-                        <p className="text-2xl font-bold text-primary">₹{product.price.toLocaleString('en-IN')}</p>
+                        <p className="text-2xl font-bold text-primary">₹{product.currentPrice.toLocaleString('en-IN')}</p>
                     </div>
 
                     <div className="mt-6">
