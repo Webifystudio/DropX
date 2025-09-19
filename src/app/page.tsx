@@ -1,8 +1,5 @@
-import { products, categories } from "@/lib/data";
-import { ProductList } from "@/components/products/product-list";
+import { categories } from "@/lib/data";
 import { Star, Smartphone, Shirt, Home as HomeIcon, Heart, Truck, Play, Video, Music } from "lucide-react";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 
 const categoryIcons: { [key: string]: React.ReactElement } = {
@@ -23,10 +20,6 @@ const categoryColors: { [key: string]: string } = {
     "Prime Video": "bg-pink-100",
 }
 
-const deals = products.slice(0, 4);
-const trending = products.slice(4, 8);
-
-
 export default function Home() {
   return (
     <>
@@ -40,15 +33,6 @@ export default function Home() {
           </div>
       </div>
       <main className="container mx-auto px-4 py-6">
-        <section className="mb-8" data-aos="fade-up">
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                <CardContent className="p-6 text-center">
-                    <h2 className="text-3xl font-bold text-blue-800 font-headline">Welcome to DropX</h2>
-                    <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Your destination for the latest trends and top products. Discover unbeatable deals and find your next favorite item today.</p>
-                </CardContent>
-            </Card>
-        </section>
-
         <section className="mb-8" data-aos="fade-up">
             <h2 className="text-lg font-semibold mb-4">Shop by Category</h2>
             <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -64,18 +48,6 @@ export default function Home() {
         </section>
 
         <section className="mb-8" data-aos="fade-up">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Deals of the Day</h2>
-                <Link href="#" className="text-sm text-blue-600 hover:underline">See all</Link>
-            </div>
-            <ProductList products={deals} />
-        </section>
-
-        <section className="mb-8" data-aos="fade-up">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Prime Exclusive</h2>
-                <Link href="#" className="text-sm text-blue-600 hover:underline">See all</Link>
-            </div>
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                     <div>
@@ -101,14 +73,6 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-        </section>
-
-        <section className="mb-8" data-aos="fade-up">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Trending Products</h2>
-                <Link href="#" className="text-sm text-blue-600 hover:underline">See all</Link>
-            </div>
-            <ProductList products={trending} />
         </section>
       </main>
     </>
