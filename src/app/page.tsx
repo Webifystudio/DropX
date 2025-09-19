@@ -2,7 +2,7 @@ import { HeroSlider } from "@/components/home/hero-slider";
 
 export default function Home() {
   return (
-    <main>
+    <main className="flex-1">
       <HeroSlider />
     </main>
   );
