@@ -31,6 +31,7 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
         <Drawer.Content className="bg-background flex flex-col rounded-t-[10px] h-[96%] mt-24 fixed bottom-0 left-0 right-0 z-50">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-zinc-300 mb-2" />
             <div className="p-4 bg-background flex-1 overflow-y-auto">
+                <Drawer.Title className="sr-only">Product Details</Drawer.Title>
                 <div className="sticky top-0 bg-background py-2 -mt-4 z-10">
                     <div className="flex justify-between items-center">
                          <Drawer.Close asChild>
