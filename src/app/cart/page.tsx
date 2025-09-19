@@ -42,7 +42,7 @@ export default function CartPage() {
             <Card key={product.id} className="overflow-hidden">
               <CardContent className="flex gap-4 p-4">
                 <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                   <Image src={imageUrl} alt={product.name} layout="fill" objectFit="cover" data-ai-hint={imageHint} />
+                   <Image src={imageUrl} alt={product.name} fill objectFit="cover" data-ai-hint={imageHint} />
                 </div>
                 <div className="flex-grow flex flex-col justify-between">
                     <div>

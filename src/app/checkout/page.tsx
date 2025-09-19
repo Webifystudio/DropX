@@ -164,7 +164,7 @@ export default function CheckoutPage() {
                   return (
                     <div key={product.id} className="flex items-center gap-4">
                         <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
-                            <Image src={imageUrl} alt={product.name} layout="fill" objectFit="cover" data-ai-hint={imageHint} />
+                            <Image src={imageUrl} alt={product.name} fill objectFit="cover" data-ai-hint={imageHint} />
                         </div>
                         <div className="flex-grow">
                             <p className="font-medium text-sm truncate">{product.name}</p>
