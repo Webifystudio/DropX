@@ -1,13 +1,23 @@
+
 'use client';
 
 import Link from 'next/link';
-import { Search, ShoppingCart, User, Menu } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, Shield } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
-import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function Header() {
   const { cartCount } = useCart();
+  const { user, signOut } = useAuth();
   
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
@@ -37,9 +47,42 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            <Link href="/account">
-              <User className="text-gray-600" />
-            </Link>
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link href="/orders">Orders</Link>
+                </DropdownMenuItem>
+                {user && user.email === 'akirastreamingzone@gmail.com' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                       <Link href="/admin">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Panel
+                       </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                 <DropdownMenuSeparator />
+                 {user ? (
+                    <DropdownMenuItem onClick={signOut}>Sign Out</DropdownMenuItem>
+                 ): (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/login">Sign In</Link>
+                    </DropdownMenuItem>
+                 )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

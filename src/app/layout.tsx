@@ -1,8 +1,10 @@
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { CartProvider } from "@/context/cart-context";
+import { AuthProvider } from "@/context/auth-context";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -32,14 +34,16 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <CartProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            {children}
-            <BottomNav />
-          </div>
-          <Toaster />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              {children}
+              <BottomNav />
+            </div>
+            <Toaster />
+          </CartProvider>
+        </AuthProvider>
         <Script src="https://unpkg.com/aos@2.3.1/dist/aos.js" strategy="afterInteractive" />
         <Script id="aos-init" strategy="afterInteractive">
           {`
