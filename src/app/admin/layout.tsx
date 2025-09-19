@@ -3,21 +3,18 @@
 
 import withAuth from '@/components/auth/with-auth';
 import { useAuth } from '@/context/auth-context';
-import { BarChart2, Bell, Box, Download, FileText, LayoutGrid, Mic, Package, Search, Users } from 'lucide-react';
+import { LayoutGrid, Package, Plus, Search, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { AddProductDialog } from '@/components/admin/add-product-dialog';
+import { Button } from '@/components/ui/button';
 
 const sidebarNavItems = [
   { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
-  { href: '#', icon: BarChart2, label: 'Analytics' },
-  { href: '#', icon: Package, label: 'Orders' },
-  { href: '#', icon: Users, label: 'Customers' },
-  { href: '#', icon: Box, label: 'Products' },
-  { href: '#', icon: FileText, label: 'Reports' },
-  { href: '#', icon: Download, label: 'Downloads' },
+  { href: '/admin/products', icon: Package, label: 'Products' },
 ];
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -25,7 +22,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50">
+    <div className="flex min-h-screen bg-gray-50/50 relative">
       <aside className="w-20 flex-col bg-card border-r flex">
         <div className="flex-shrink-0 flex items-center justify-center h-16">
           <LayoutGrid className="h-7 w-7 text-primary" />
@@ -68,7 +65,6 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
               placeholder="Search..."
               className="pl-10 pr-10 w-full"
             />
-            <Mic className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           </div>
         </header>
 
@@ -76,6 +72,12 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      <AddProductDialog>
+        <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg">
+            <Plus className="h-8 w-8" />
+        </Button>
+      </AddProductDialog>
     </div>
   );
 }

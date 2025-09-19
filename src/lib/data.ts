@@ -1,14 +1,74 @@
-import type { Product, Category, Review, Order } from './types';
 
-export const categories: Category[] = [
-  { id: 'electronics', name: 'Electronics', icon: 'Laptop' },
-  { id: 'fashion', name: 'Fashion', icon: 'Shirt' },
-  { id: 'home-kitchen', name: 'Home & Kitchen', icon: 'Home' },
-  { id: 'books', name: 'Books', icon: 'Book' },
-  { id: 'sports', name: 'Sports', icon: 'Dumbbell' },
-  { id: 'prime-video', name: 'Prime Video', icon: 'Film' },
-  { id: 'more', name: 'More', icon: 'MoreHorizontal' },
+import type { Product, Category, Review, Order, ProductCategory } from './types';
+
+export const categories: ProductCategory[] = [
+  {
+    id: "electronics",
+    name: "Electronics",
+    subCategories: [
+      { id: "computers-laptops", name: "Computers & Laptops" },
+      { id: "smartphones-tablets", name: "Smartphones & Tablets" },
+      { id: "cameras-drones", name: "Cameras & Drones" },
+      { id: "audio-headphones", name: "Audio & Headphones" },
+      { id: "tvs-home-theater", name: "TVs & Home Theater" },
+    ],
+  },
+  {
+    id: "apparel-clothing",
+    name: "Apparel & Clothing",
+    subCategories: [
+      { id: "mens-clothing", name: "Men's Clothing" },
+      { id: "womens-clothing", name: "Women's Clothing" },
+      { id: "kids-clothing", name: "Kids' Clothing" },
+      { id: "shoes", name: "Shoes" },
+      { id: "accessories", name: "Accessories (Hats, Bags, Jewelry)" },
+    ],
+  },
+  {
+    id: "home-goods",
+    name: "Home Goods",
+    subCategories: [
+      { id: "furniture", name: "Furniture" },
+      { id: "kitchen-dining", name: "Kitchen & Dining" },
+      { id: "bed-bath", name: "Bed & Bath" },
+      { id: "decor", name: "Decor" },
+      { id: "appliances", name: "Appliances" },
+    ],
+  },
+  {
+    id: "health-beauty",
+    name: "Health & Beauty",
+    subCategories: [
+      { id: "skincare", name: "Skincare" },
+      { id: "makeup", name: "Makeup" },
+      { id: "haircare", name: "Haircare" },
+      { id: "fragrance", name: "Fragrance" },
+      { id: "vitamins-supplements", name: "Vitamins & Supplements" },
+    ],
+  },
+  {
+    id: "sports-outdoors",
+    name: "Sports & Outdoors",
+    subCategories: [
+      { id: "fitness-equipment", name: "Fitness Equipment" },
+      { id: "camping-hiking", name, "Camping & Hiking" },
+      { id: "cycling", name: "Cycling" },
+      { id: "team-sports", name: "Team Sports" },
+      { id: "outdoor-apparel", name: "Outdoor Apparel" },
+    ],
+  },
+  {
+    id: "books-media",
+    name: "Books & Media",
+    subCategories: [
+      { id: "books", name: "Books" },
+      { id: "movies-tv-shows", name: "Movies & TV Shows" },
+      { id: "music", name: "Music" },
+      { id: "video-games", name: "Video Games" },
+    ],
+  },
 ];
+
 
 export const products: Product[] = [
   {
@@ -17,7 +77,7 @@ export const products: Product[] = [
     description: 'Experience immersive sound with these noise-cancelling wireless headphones. Long-lasting battery and comfortable design for all-day wear.',
     price: 2499,
     images: ['1', '2'],
-    categoryId: 'electronics',
+    categoryId: 'audio-headphones',
     rating: 4.5,
     reviewCount: 120,
   },
@@ -27,7 +87,7 @@ export const products: Product[] = [
     description: 'Stay connected and track your fitness goals with this sleek smartwatch. Features a vibrant display, heart rate monitor, and GPS.',
     price: 4999,
     images: ['3', '4'],
-    categoryId: 'electronics',
+    categoryId: 'smartphones-tablets',
     rating: 4.7,
     reviewCount: 95,
   },
@@ -37,7 +97,7 @@ export const products: Product[] = [
     description: 'A stylish and versatile bomber jacket, perfect for any casual occasion. Made from premium materials for comfort and durability.',
     price: 1899,
     images: ['5', '6'],
-    categoryId: 'fashion',
+    categoryId: 'mens-clothing',
     rating: 4.6,
     reviewCount: 210,
   },
@@ -47,7 +107,7 @@ export const products: Product[] = [
     description: 'Flattering high-waisted jeans made from stretchable denim. A timeless piece for your wardrobe.',
     price: 1599,
     images: ['7', '8'],
-    categoryId: 'fashion',
+    categoryId: 'womens-clothing',
     rating: 4.4,
     reviewCount: 180,
   },
@@ -57,7 +117,7 @@ export const products: Product[] = [
     description: 'Brew cafe-quality espresso at home. This machine features a powerful pressure pump and a milk frother for perfect cappuccinos.',
     price: 8999,
     images: ['9', '10'],
-    categoryId: 'home-kitchen',
+    categoryId: 'kitchen-dining',
     rating: 4.8,
     reviewCount: 75,
   },
@@ -67,7 +127,7 @@ export const products: Product[] = [
     description: 'A complete 10-piece non-stick cookware set. Eco-friendly, durable, and easy to clean.',
     price: 3499,
     images: ['11', '12'],
-    categoryId: 'home-kitchen',
+    categoryId: 'kitchen-dining',
     rating: 4.5,
     reviewCount: 150,
   },
@@ -87,7 +147,7 @@ export const products: Product[] = [
     description: 'Extra-thick, non-slip yoga mat for a comfortable and stable practice. Made from eco-friendly TPE material.',
     price: 999,
     images: ['15', '16'],
-    categoryId: 'sports',
+    categoryId: 'fitness-equipment',
     rating: 4.7,
     reviewCount: 320,
   },
@@ -97,7 +157,7 @@ export const products: Product[] = [
     description: 'Compact yet powerful speaker with waterproof design. Enjoy your favorite music anywhere, anytime.',
     price: 1299,
     images: ['17', '18'],
-    categoryId: 'electronics',
+    categoryId: 'audio-headphones',
     rating: 4.6,
     reviewCount: 250,
   },
@@ -107,7 +167,7 @@ export const products: Product[] = [
     description: 'A classic timepiece with a genuine leather strap and a minimalist dial. Perfect for both formal and casual wear.',
     price: 2199,
     images: ['19', '20'],
-    categoryId: 'fashion',
+    categoryId: 'accessories',
     rating: 4.5,
     reviewCount: 130,
   },

@@ -1,3 +1,4 @@
+
 export type Product = {
   id: string;
   name: string;
@@ -9,11 +10,22 @@ export type Product = {
   reviewCount: number;
 };
 
-export type Category = {
+export type OldCategory = {
   id: string;
   name: string;
   icon: string;
 };
+
+export type SubCategory = {
+  id: string;
+  name: string;
+};
+
+export type ProductCategory = {
+  id: string;
+  name: string;
+  subCategories: SubCategory[];
+}
 
 export type Review = {
   id: string;
