@@ -26,39 +26,19 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
-        <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
       </head>
       <body
         className={cn(
-          "min-h-screen bg-gray-50 font-sans antialiased",
+          "min-h-screen bg-background font-sans antialiased",
           inter.variable
         )}
       >
         <AuthProvider>
           <CartProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              {children}
-              <BottomNav />
-            </div>
+            {children}
             <Toaster />
           </CartProvider>
         </AuthProvider>
-        <Script src="https://unpkg.com/aos@2.3.1/dist/aos.js" strategy="afterInteractive" />
-        <Script id="aos-init" strategy="afterInteractive">
-          {`
-            // Using a timeout to ensure AOS is loaded.
-            setTimeout(() => {
-              if (typeof AOS !== 'undefined') {
-                AOS.init({
-                  duration: 800,
-                  easing: 'ease-in-out',
-                  once: true
-                });
-              }
-            }, 100);
-          `}
-        </Script>
       </body>
     </html>
   );

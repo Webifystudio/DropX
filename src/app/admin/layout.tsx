@@ -1,0 +1,83 @@
+
+'use client';
+
+import withAuth from '@/components/auth/with-auth';
+import { useAuth } from '@/context/auth-context';
+import { BarChart2, Bell, Box, Download, FileText, LayoutGrid, Mic, Package, Search, Users } from 'lucide-react';
+import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
+
+const sidebarNavItems = [
+  { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
+  { href: '#', icon: BarChart2, label: 'Analytics' },
+  { href: '#', icon: Package, label: 'Orders' },
+  { href: '#', icon: Users, label: 'Customers' },
+  { href: '#', icon: Box, label: 'Products' },
+  { href: '#', icon: FileText, label: 'Reports' },
+  { href: '#', icon: Download, label: 'Downloads' },
+];
+
+function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const pathname = usePathname();
+
+  return (
+    <div className="flex min-h-screen bg-gray-50/50">
+      <aside className="w-20 flex-col bg-card border-r flex">
+        <div className="flex-shrink-0 flex items-center justify-center h-16">
+          <LayoutGrid className="h-7 w-7 text-primary" />
+        </div>
+        <nav className="flex-grow flex flex-col items-center space-y-2 py-4">
+          {sidebarNavItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={cn(
+                  'p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors',
+                  isActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'text-muted-foreground'
+                )}
+                aria-label={item.label}
+              >
+                <item.icon className="h-6 w-6" />
+              </Link>
+            )
+          })}
+        </nav>
+        <div className="flex-shrink-0 flex flex-col items-center space-y-4 py-4">
+            <button className="p-3 text-muted-foreground hover:text-accent-foreground rounded-lg hover:bg-accent">
+                <Bell className="h-6 w-6" />
+            </button>
+            <Avatar>
+              <AvatarImage src={`https://avatar.vercel.sh/${user?.email}.png`} alt={user?.email || ''} />
+              <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col">
+        <header className="h-16 flex items-center justify-between px-6 border-b bg-card">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="pl-10 pr-10 w-full"
+            />
+            <Mic className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          </div>
+        </header>
+
+        <main className="flex-1 p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default withAuth(AdminLayout, { requiredRole: "akirastreamingzone@gmail.com" });

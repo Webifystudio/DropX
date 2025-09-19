@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -17,6 +17,7 @@ export default function withAuth<P extends object>(
   const WithAuth: React.FC<P> = (props) => {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     useEffect(() => {
       if (loading) {
@@ -30,23 +31,16 @@ export default function withAuth<P extends object>(
       
       if (options.requiredRole && user.email !== options.requiredRole) {
           router.replace('/');
+          return;
       }
+
+      setIsAuthorized(true);
 
     }, [user, loading, router]);
 
-    if (loading || !user || (options.requiredRole && user.email !== options.requiredRole)) {
-      return (
-        <div className="container mx-auto px-4 py-8 space-y-8">
-            <Skeleton className="h-10 w-1/3" />
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <Skeleton className="h-28" />
-                <Skeleton className="h-28" />
-                <Skeleton className="h-28" />
-                <Skeleton className="h-28" />
-            </div>
-            <Skeleton className="h-64" />
-        </div>
-      );
+    if (!isAuthorized) {
+        // You can return a loader here, or null
+        return null; 
     }
     
     return <WrappedComponent {...props} />;
