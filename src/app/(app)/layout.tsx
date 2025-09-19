@@ -3,7 +3,6 @@
 
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
-import { CartProvider } from "@/context/cart-context";
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getStore } from '@/lib/stores';
@@ -20,11 +19,15 @@ export default function AppLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storeId = pathname.split('/')[1];
+    const segments = pathname.split('/').filter(Boolean);
+    const potentialStoreId = segments[0];
     
+    // A list of top-level routes that are NOT stores
+    const nonStoreRoutes = ['product', 'cart', 'categories', 'category', 'checkout', 'orders', 'search', 'account', 'admin', 'creator'];
+
     async function fetchStore() {
-        if (storeId && storeId !== 'product' && storeId !== 'cart' && storeId !== 'categories' && storeId !== 'category' && storeId !== 'checkout' && storeId !== 'orders' && storeId !== 'search' && storeId !== 'account' ) {
-            const fetchedStore = await getStore(storeId);
+        if (potentialStoreId && !nonStoreRoutes.includes(potentialStoreId)) {
+            const fetchedStore = await getStore(potentialStoreId);
             setStore(fetchedStore);
         } else {
             setStore(null);
@@ -37,13 +40,11 @@ export default function AppLayout({
 
   return (
     <StoreProvider store={store}>
-      <CartProvider>
         <div className="relative flex min-h-screen flex-col">
           <Header />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <BottomNav />
         </div>
-      </CartProvider>
     </StoreProvider>
   );
 }
