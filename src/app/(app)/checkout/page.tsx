@@ -1,10 +1,10 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +23,9 @@ import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
+import { collection, addDoc, Timestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -47,21 +50,44 @@ export default function CheckoutPage() {
       whatsappNumber: "",
     },
   })
+  
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      router.push('/');
+    }
+  }, [cartItems, router]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Order placed with values:", values);
-    clearCart();
-    toast({
-      title: "Order Placed!",
-      description: "Thank you for your purchase. Your order is being processed.",
-    });
-    router.push("/orders");
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+        await addDoc(collection(db, "orders"), {
+            date: Timestamp.now(),
+            total: cartTotal,
+            status: "Processing",
+            items: cartItems,
+            shippingAddress: values,
+        });
+
+        clearCart();
+        toast({
+            title: "Order Placed!",
+            description: "Thank you for your purchase. Your order is being processed.",
+        });
+        router.push("/orders");
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        toast({
+            title: "Order Failed",
+            description: "There was an error placing your order. Please try again.",
+            variant: "destructive",
+        });
+    }
   }
   
-  if (cartItems.length === 0 && typeof window !== 'undefined') {
-    router.push('/');
-    return null;
+  if (cartItems.length === 0) {
+    return null; // or a loading spinner
   }
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -131,7 +157,7 @@ export default function CheckoutPage() {
                   </div>
                    <div className="grid md:grid-cols-2 gap-6">
                      <FormItem>
-                        <FormLabel>State</FormLabel>
+                        <FormLabel>Country</FormLabel>
                         <FormControl>
                           <Input value="India" disabled />
                         </FormControl>
