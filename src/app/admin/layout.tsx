@@ -3,7 +3,7 @@
 
 import withAuth from '@/components/auth/with-auth';
 import { useAuth } from '@/context/auth-context';
-import { LayoutGrid, Package, Plus, Search, Bell, ShoppingCart } from 'lucide-react';
+import { LayoutGrid, Package, Plus, Search, Bell, ShoppingCart, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,7 @@ const sidebarNavItems = [
   { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
   { href: '/admin/products', icon: Package, label: 'Products' },
   { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
+  { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/notifications', icon: Bell, label: 'Notifications' },
 ];
 

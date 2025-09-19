@@ -20,9 +20,9 @@ export default function CreatorPage() {
             Become a DropX Creator
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Launch your own e-commerce brand with zero investment. We provide the website, the products, and handle all the logistics. You just focus on growing your brand.
+            Launch your own e-commerce brand with zero investment. This is a dropshipping partnership, not an affiliate program. We provide the website, the products, and handle all the logistics. You just focus on growing your brand.
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild size="lg" className="bg-pink-500 hover:bg-pink-600 text-white">
               <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">
                 <Instagram className="mr-2" /> Follow on Instagram
@@ -47,20 +47,20 @@ export default function CreatorPage() {
             <p className="text-muted-foreground mt-2">Starting your journey with DropX is as simple as 1-2-3.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 text-center">
-             <div className="flex flex-col items-center">
+             <div className="flex flex-col items-center p-4">
                 <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-4">1</div>
                 <h3 className="text-xl font-semibold mb-2">Register on Instagram</h3>
                 <p className="text-muted-foreground">Follow our Instagram page and send us a message to get your free creator account.</p>
             </div>
-             <div className="flex flex-col items-center">
+             <div className="flex flex-col items-center p-4">
                 <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-4">2</div>
                 <h3 className="text-xl font-semibold mb-2">Get Your Login</h3>
-                <p className="text-muted-foreground">We'll provide you with your unique username and password to access your creator dashboard.</p>
+                <p className="text-muted-foreground">We'll provide you with your unique email and password to access your creator dashboard.</p>
             </div>
-             <div className="flex flex-col items-center">
+             <div className="flex flex-col items-center p-4">
                 <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-4">3</div>
                 <h3 className="text-xl font-semibold mb-2">Start Selling</h3>
-                <p className="text-muted-foreground">Log in, customize your store, and start promoting your products to earn commissions.</p>
+                <p className="text-muted-foreground">Log in, customize your store, and start promoting your products to earn from the profits.</p>
             </div>
           </div>
         </div>
