@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -22,6 +22,12 @@ export default function CreatorLoginPage() {
   const { toast } = useToast();
   const { user, loading } = useAuth();
 
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/creator/dashboard');
+    }
+  }, [user, loading, router]);
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -32,7 +38,7 @@ export default function CreatorLoginPage() {
         title: "Login Successful",
         description: "Redirecting to your creator dashboard...",
       });
-      router.push("/creator/dashboard");
+      // The useEffect will handle the redirect after the user state is updated
     } catch (error: any) {
       toast({
         title: "Login Failed",
@@ -44,17 +50,12 @@ export default function CreatorLoginPage() {
     }
   };
 
-  if (loading) {
+  if (loading || user) {
       return (
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-gray-50">
             <p>Loading...</p>
         </div>
       )
-  }
-
-  if (user) {
-    router.push('/creator/dashboard');
-    return null;
   }
 
   return (
