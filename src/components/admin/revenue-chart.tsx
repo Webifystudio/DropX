@@ -1,9 +1,10 @@
 
 "use client"
 
+import { useState, useEffect } from "react"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
 
-const data = [
+const generateData = () => [
   { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Feb", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
@@ -31,6 +32,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   };
 
 export function RevenueChart() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setData(generateData());
+  }, []);
+
   return (
     <div className="h-[350px]">
         <div className="px-6 pb-4">
