@@ -3,14 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Categories } from "@/components/categories/categories";
-import Header from "@/components/layout/header";
-import BottomNav from "@/components/layout/bottom-nav";
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
+    <>
         <section className="relative h-[60vh] md:h-[80vh] flex items-center justify-center text-white">
           <Image
             src="https://picsum.photos/seed/home-hero/1920/1080"
@@ -35,8 +31,6 @@ export default function Home() {
         </section>
 
         <Categories />
-      </main>
-      <BottomNav />
-    </div>
+    </>
   );
 }

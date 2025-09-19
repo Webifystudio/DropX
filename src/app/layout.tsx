@@ -6,8 +6,6 @@ import { cn } from "@/lib/utils";
 import { CartProvider } from "@/context/cart-context";
 import { AuthProvider } from "@/context/auth-context";
 import { Toaster } from "@/components/ui/toaster";
-import Header from "@/components/layout/header";
-import BottomNav from "@/components/layout/bottom-nav";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
