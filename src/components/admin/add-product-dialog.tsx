@@ -64,15 +64,41 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
   const isFreeShipping = watch("isFreeShipping")
 
   const onSubmit = async (data: ProductFormValues) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
+    const imgbbApiKey = "81b665cd5c10e982384fcdec4b410fba";
+    let imageUrls: string[] = [];
+
     try {
-      // In a real app, you would handle image uploads to a storage service (like Firebase Storage)
-      // and get back the URLs. For now, we'll just log the file names.
-      const imageUrls = data.images ? Array.from(data.images).map((file: any) => file.name) : [];
+      if (data.images && data.images.length > 0) {
+        const uploadPromises = Array.from(data.images).map(async (file: any) => {
+          const formData = new FormData();
+          formData.append("image", file);
+
+          const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            return result.data.url;
+          } else {
+            throw new Error(`Image upload failed: ${result.error.message}`);
+          }
+        });
+
+        imageUrls = await Promise.all(uploadPromises);
+      }
       
       const productData = {
-        ...data,
-        images: imageUrls, // Replace with actual URLs after upload
+        name: data.name,
+        description: data.description,
+        normalPrice: data.normalPrice,
+        currentPrice: data.currentPrice,
+        category: data.category,
+        isFreeShipping: data.isFreeShipping,
+        shippingCharge: data.shippingCharge,
+        images: imageUrls,
         createdAt: new Date(),
       };
 
@@ -85,7 +111,7 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
       reset()
       setIsOpen(false)
     } catch (error) {
-      console.error("Error adding document: ", error)
+      console.error("Error adding product: ", error)
       toast({
         title: "Error",
         description: "Failed to add product. Please try again.",
@@ -199,3 +225,5 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     </Dialog>
   )
 }
+
+    
