@@ -1,6 +1,7 @@
 
-import { getProducts } from '@/lib/products';
+import { getProductById } from '@/lib/products';
 import { ProductViewWrapper } from '@/components/products/product-view-wrapper';
+import { notFound } from 'next/navigation';
 
 type ProductPageProps = {
   params: {
@@ -9,8 +10,11 @@ type ProductPageProps = {
 };
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const allProducts = await getProducts();
-  const product = allProducts.find((p) => p.id === params.productId);
+  const product = await getProductById(params.productId);
+
+  if (!product) {
+    notFound();
+  }
 
   return <ProductViewWrapper product={product} />;
 }

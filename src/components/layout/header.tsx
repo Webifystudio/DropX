@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, ShoppingCart, User, Menu, Shield } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, Shield, Users } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
@@ -33,6 +33,13 @@ export default function Header() {
                 India
               </span>
             </Link>
+          </div>
+          
+          <div className="hidden md:flex items-center space-x-6">
+             <Link href="/creator" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Become a Creator
+              </Link>
           </div>
 
           <div className="flex items-center space-x-4">
