@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { CartProvider } from "@/context/cart-context";
-import { AuthProvider } from "@/context/auth-context";
 import { Toaster } from "@/components/ui/toaster";
 import Script from "next/script";
 
@@ -31,12 +29,8 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <AuthProvider>
-          <CartProvider>
-            {children}
-            <Toaster />
-          </CartProvider>
-        </AuthProvider>
+        {children}
+        <Toaster />
       </body>
     </html>
   );

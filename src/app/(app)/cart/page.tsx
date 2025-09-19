@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCart } from '@/context/cart-context';
@@ -48,7 +47,7 @@ export default function CartPage() {
                 <div className="flex-grow flex flex-col justify-between">
                     <div>
                         <Link href={`/${product.id}`} className="font-medium hover:text-primary">{product.name}</Link>
-                        <p className="text-lg font-semibold mt-1">₹{product.price.toLocaleString('en-IN')}</p>
+                        <p className="text-lg font-semibold mt-1">₹{product.currentPrice.toLocaleString('en-IN')}</p>
                     </div>
                     <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center">
