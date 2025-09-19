@@ -81,7 +81,7 @@ export default function CheckoutPage() {
         clearCart();
         toast({
             title: "Order Placed!",
-            description: "Thank you for your purchase. Your order is being processed.",
+            description: "We will message you on WhatsApp to confirm your order.",
         });
         router.push("/orders");
     } catch (e) {

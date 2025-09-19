@@ -29,7 +29,7 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
 
-  const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
+  const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.currentPrice) * 100) : 0;
 
   const handleBuyNow = () => {
     addToCart(product);
