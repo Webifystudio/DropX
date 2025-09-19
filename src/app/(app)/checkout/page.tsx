@@ -21,21 +21,16 @@ import { useCart } from "@/context/cart-context"
 import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
-import { PlaceHolderImages } from "@/lib/placeholder-images"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Terminal } from "lucide-react"
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   address: z.string().min(10, { message: "Please enter a valid address." }),
   city: z.string().min(2, { message: "City is required." }),
   pincode: z.string().length(6, { message: "Pincode must be 6 digits." }),
-  phone: z.string().length(10, { message: "Phone number must be 10 digits." }),
+  whatsappNumber: z.string().length(10, { message: "WhatsApp number must be 10 digits." }),
 })
-
-function getPlaceholderImage(id: string) {
-    const image = PlaceHolderImages.find((img) => img.id === id);
-    return image || { imageUrl: 'https://picsum.photos/seed/placeholder/600/600', imageHint: 'placeholder' };
-}
-
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -49,7 +44,7 @@ export default function CheckoutPage() {
       address: "",
       city: "",
       pincode: "",
-      phone: "",
+      whatsappNumber: "",
     },
   })
 
@@ -130,4 +125,82 @@ export default function CheckoutPage() {
                             <Input type="number" placeholder="6-digit pincode" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormIte<ctrl63>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                   <div className="grid md:grid-cols-2 gap-6">
+                     <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input value="India" disabled />
+                        </FormControl>
+                      </FormItem>
+                    <FormField
+                        control={form.control}
+                        name="whatsappNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>WhatsApp Number</FormLabel>
+                            <FormControl>
+                                <Input type="tel" placeholder="10-digit number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                   </div>
+                   <Alert variant="destructive">
+                      <Terminal className="h-4 w-4" />
+                      <AlertTitle>Heads up!</AlertTitle>
+                      <AlertDescription>
+                        Please double-check your address. We are not responsible for orders shipped to an incorrect address.
+                      </AlertDescription>
+                    </Alert>
+                  <Button type="submit" size="lg" className="w-full">Place Order</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {cartItems.map(item => (
+                        <div key={item.product.id} className="flex items-center gap-4">
+                            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
+                                <Image src={item.product.images[0]} alt={item.product.name} fill objectFit="cover" />
+                            </div>
+                            <div className="flex-grow">
+                                <p className="font-medium text-sm truncate">{item.product.name}</p>
+                                <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                            </div>
+                            <p className="font-medium text-sm">₹{(item.product.currentPrice * item.quantity).toLocaleString('en-IN')}</p>
+                        </div>
+                    ))}
+                    <Separator />
+                     <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span className="font-medium">₹{cartTotal.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>Shipping</span>
+                        <span className="font-medium">Free</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span>₹{cartTotal.toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}

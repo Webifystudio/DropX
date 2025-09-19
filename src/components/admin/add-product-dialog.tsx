@@ -17,13 +17,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
 import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
+import { Plus, Trash } from "lucide-react"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -31,6 +32,7 @@ const productSchema = z.object({
   normalPrice: z.coerce.number().min(0, "Price cannot be negative"),
   currentPrice: z.coerce.number().min(0, "Price cannot be negative"),
   category: z.string().min(1, "Please select a category"),
+  sizes: z.array(z.object({ value: z.string().min(1, "Size cannot be empty") })).optional(),
   isFreeShipping: z.boolean().default(true),
   shippingCharge: z.coerce.number().optional(),
   images: z.any()
@@ -61,8 +63,14 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     resolver: zodResolver(productSchema),
     defaultValues: {
         isFreeShipping: true,
+        sizes: [{ value: 'M' }]
     }
   })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "sizes"
+  });
 
   const isFreeShipping = watch("isFreeShipping")
 
@@ -99,8 +107,9 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
         normalPrice: data.normalPrice,
         currentPrice: data.currentPrice,
         category: data.category,
+        sizes: data.sizes?.map(s => s.value) || [],
         isFreeShipping: data.isFreeShipping,
-        shippingCharge: data.shippingCharge,
+        shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
         createdAt: Timestamp.now(),
       };
@@ -187,6 +196,28 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
                     )}
                   />
                 {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <Label>Sizes</Label>
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2">
+                    <Input {...register(`sizes.${index}.value`)} placeholder={`Size ${index + 1}`} />
+                    <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                 <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ value: "" })}
+                  className="mt-2"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Add Size
+                </Button>
+                {errors.sizes && <p className="text-sm text-destructive">{errors.sizes.message}</p>}
             </div>
             
             <div className="space-y-2">

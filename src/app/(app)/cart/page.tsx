@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/context/cart-context';
@@ -5,15 +6,9 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-
-function getPlaceholderImage(id: string) {
-    const image = PlaceHolderImages.find((img) => img.id === id);
-    return image || { imageUrl: 'https://picsum.photos/seed/placeholder/600/600', imageHint: 'placeholder' };
-}
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
@@ -36,13 +31,11 @@ export default function CartPage() {
       <h1 className="text-3xl font-bold mb-8 font-headline">Your Cart</h1>
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          {cartItems.map(({ product, quantity }) => {
-            const { imageUrl, imageHint } = getPlaceholderImage(product.images[0]);
-            return (
+          {cartItems.map(({ product, quantity }) => (
             <Card key={product.id} className="overflow-hidden">
               <CardContent className="flex gap-4 p-4">
                 <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                   <Image src={imageUrl} alt={product.name} fill objectFit="cover" data-ai-hint={imageHint} />
+                   <Image src={product.images[0]} alt={product.name} fill objectFit="cover" />
                 </div>
                 <div className="flex-grow flex flex-col justify-between">
                     <div>
@@ -66,7 +59,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
             </Card>
-          )})}
+          ))}
         </div>
         
         <div className="lg:col-span-1">

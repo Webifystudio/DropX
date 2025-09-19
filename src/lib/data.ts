@@ -89,25 +89,5 @@ export const reviews: Review[] = [
 ];
 
 export const orders: Order[] = [
-  {
-    id: 'ORD-12345',
-    date: '2024-04-20',
-    total: 2499,
-    status: 'Delivered',
-    items: [],
-  },
-  {
-    id: 'ORD-12346',
-    date: '2024-05-05',
-    total: 6598,
-    status: 'Shipped',
-    items: [],
-  },
-  {
-    id: 'ORD-12347',
-    date: '2024-05-12',
-    total: 999,
-    status: 'Processing',
-    items: [],
-  },
+  // Mock orders are no longer needed here as they are fetched from Firestore
 ];
