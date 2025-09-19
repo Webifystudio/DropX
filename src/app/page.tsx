@@ -1,10 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { products, categories } from "@/lib/data";
 import { ProductList } from "@/components/products/product-list";
-import { Search, Star, Smartphone, Shirt, Home as HomeIcon, Heart, Truck, Play, Video, Music } from "lucide-react";
+import { Star, Smartphone, Shirt, Home as HomeIcon, Heart, Truck, Play, Video, Music } from "lucide-react";
 import Link from "next/link";
-import { ProductCard } from "@/components/products/product-card";
 import { Card, CardContent } from "@/components/ui/card";
 
 const categoryIcons: { [key: string]: React.ReactElement } = {
