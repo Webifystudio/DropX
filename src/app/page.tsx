@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Categories } from "@/components/categories/categories";
 
 export default function Home() {
   return (
@@ -27,6 +28,8 @@ export default function Home() {
           </Button>
         </div>
       </section>
+
+      <Categories />
     </main>
   );
 }

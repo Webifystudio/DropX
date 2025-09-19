@@ -12,6 +12,7 @@ export type Product = {
 export type Category = {
   id: string;
   name: string;
+  icon: string;
 };
 
 export type Review = {
@@ -29,7 +30,7 @@ export type CartItem = {
 };
 
 export type Order = {
-  id: string;
+  id:string;
   date: string;
   total: number;
   status: 'Processing' | 'Shipped' | 'Delivered';

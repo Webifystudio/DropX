@@ -1,12 +1,13 @@
 import type { Product, Category, Review, Order } from './types';
 
 export const categories: Category[] = [
-  { id: 'electronics', name: 'Electronics' },
-  { id: 'fashion', name: 'Fashion' },
-  { id: 'home-kitchen', name: 'Home & Kitchen' },
-  { id: 'books', name: 'Books' },
-  { id: 'sports', name: 'Sports' },
-  { id: 'prime-video', name: 'Prime Video' },
+  { id: 'electronics', name: 'Electronics', icon: 'Laptop' },
+  { id: 'fashion', name: 'Fashion', icon: 'Shirt' },
+  { id: 'home-kitchen', name: 'Home & Kitchen', icon: 'Home' },
+  { id: 'books', name: 'Books', icon: 'Book' },
+  { id: 'sports', name: 'Sports', icon: 'Dumbbell' },
+  { id: 'prime-video', name: 'Prime Video', icon: 'Film' },
+  { id: 'more', name: 'More', icon: 'MoreHorizontal' },
 ];
 
 export const products: Product[] = [
