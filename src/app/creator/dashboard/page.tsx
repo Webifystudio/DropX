@@ -15,6 +15,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const storeSchema = z.object({
   name: z.string().min(3, 'Store name must be at least 3 characters').regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers, and hyphens are allowed.'),
@@ -28,15 +29,23 @@ function CreatorDashboard() {
   const { toast } = useToast();
   const [store, setStore] = useState<{ id: string; logoUrl?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [origin, setOrigin] = useState('');
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<StoreFormValues>({
     resolver: zodResolver(storeSchema),
   });
+
+  const storeName = watch('name');
 
   useEffect(() => {
     async function fetchStore() {
@@ -105,6 +114,37 @@ function CreatorDashboard() {
     }
   };
 
+  if (loading) {
+      return (
+          <div className="container mx-auto px-4 py-8 space-y-8">
+              <div className="flex justify-between items-center">
+                  <div>
+                      <Skeleton className="h-8 w-64 mb-2" />
+                      <Skeleton className="h-4 w-48" />
+                  </div>
+                  <Skeleton className="h-10 w-24" />
+              </div>
+              <Card>
+                  <CardHeader>
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-full" />
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-10 w-full" />
+                      </div>
+                       <div className="space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-10 w-full" />
+                      </div>
+                      <Skeleton className="h-10 w-32" />
+                  </CardContent>
+              </Card>
+          </div>
+      )
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -133,9 +173,11 @@ function CreatorDashboard() {
                 disabled={!!store}
               />
               {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-               <p className="text-sm text-muted-foreground">
-                Your store will be available at: {window.location.origin}/<span className="font-medium text-primary">{watch('name')}</span>
-              </p>
+               {origin && storeName && (
+                <p className="text-sm text-muted-foreground">
+                  Your store will be available at: {origin}/<span className="font-medium text-primary">{storeName}</span>
+                </p>
+               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="logo">Store Logo (Optional)</Label>
@@ -149,7 +191,7 @@ function CreatorDashboard() {
         </CardContent>
       </Card>
       
-      {store && !loading && (
+      {store && (
           <Card className="mt-8">
               <CardHeader>
                 <CardTitle>Your Store Link</CardTitle>
@@ -157,7 +199,7 @@ function CreatorDashboard() {
               <CardContent>
                   <p>Your store is live! You can access it here:</p>
                   <Link href={`/${store.id}`} className="text-primary font-bold hover:underline" target="_blank">
-                    {window.location.origin}/{store.id}
+                    {origin}/{store.id}
                   </Link>
               </CardContent>
           </Card>
