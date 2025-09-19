@@ -21,7 +21,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { collection, addDoc } from "firebase/firestore"
+import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
 
@@ -34,6 +34,9 @@ const productSchema = z.object({
   isFreeShipping: z.boolean().default(true),
   shippingCharge: z.coerce.number().optional(),
   images: z.any()
+}).refine(data => data.currentPrice <= data.normalPrice, {
+    message: "Current price cannot be greater than normal price",
+    path: ["currentPrice"],
 }).refine(data => !data.isFreeShipping ? data.shippingCharge !== undefined && data.shippingCharge >= 0 : true, {
   message: "Shipping charge is required when shipping is not free",
   path: ["shippingCharge"],
@@ -99,7 +102,7 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.shippingCharge,
         images: imageUrls,
-        createdAt: new Date(),
+        createdAt: Timestamp.now(),
       };
 
       await addDoc(collection(db, "products"), productData);
@@ -225,5 +228,3 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     </Dialog>
   )
 }
-
-    

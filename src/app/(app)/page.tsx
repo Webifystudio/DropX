@@ -3,8 +3,32 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Categories } from "@/components/categories/categories";
+import { getProducts } from "@/lib/products";
+import { ProductList } from "@/components/products/product-list";
+import { categories as allCategories } from "@/lib/data";
 
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();
+  
+  const productsByCategory: { [key: string]: any[] } = {};
+  const categoryDetails: { [key: string]: { name: string, id: string } } = {};
+
+  allCategories.forEach(mainCat => {
+      mainCat.subCategories.forEach(subCat => {
+          categoryDetails[subCat.id] = { name: subCat.name, id: mainCat.id };
+      });
+  });
+
+  products.forEach(product => {
+    if (product.category) {
+      if (!productsByCategory[product.category]) {
+        productsByCategory[product.category] = [];
+      }
+      productsByCategory[product.category].push(product);
+    }
+  });
+
+
   return (
     <>
         <section className="relative h-[60vh] md:h-[80vh] flex items-center justify-center text-white">
@@ -31,6 +55,27 @@ export default function Home() {
         </section>
 
         <Categories />
+
+        <div className="py-8 space-y-12">
+            {Object.entries(productsByCategory).map(([categoryId, products]) => {
+                const categoryInfo = categoryDetails[categoryId];
+                return (
+                    <section key={categoryId}>
+                        <div className="container mx-auto px-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold font-headline">{categoryInfo?.name || categoryId}</h2>
+                                <Button variant="link" asChild>
+                                    <Link href={`/category/${categoryInfo?.id || categoryId}`}>View All</Link>
+                                </Button>
+                            </div>
+                           <ProductList products={products} />
+                        </div>
+                    </section>
+                )
+            })}
+        </div>
+
     </>
   );
 }
+

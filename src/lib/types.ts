@@ -3,11 +3,15 @@ export type Product = {
   id: string;
   name: string;
   description: string;
-  price: number;
+  price: number; // This can be deprecated or used as a fallback. For now, it is here.
+  currentPrice: number;
+  normalPrice: number;
   images: string[];
-  categoryId: string;
+  categoryId: string; // From main categories
+  category: string; // From subcategories
   rating: number;
   reviewCount: number;
+  createdAt: string;
 };
 
 export type OldCategory = {
@@ -24,6 +28,7 @@ export type SubCategory = {
 export type ProductCategory = {
   id: string;
   name: string;
+  icon: string; // Added icon here for categories page
   subCategories: SubCategory[];
 }
 
