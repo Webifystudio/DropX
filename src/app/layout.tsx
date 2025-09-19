@@ -40,9 +40,9 @@ export default function RootLayout({
           </div>
           <Toaster />
         </CartProvider>
-        <Script src="https://unpkg.com/aos@2.3.1/dist/aos.js" />
-        <Script src="https://unpkg.com/feather-icons" />
-        <Script id="aos-init">
+        <Script src="https://unpkg.com/aos@2.3.1/dist/aos.js" strategy="afterInteractive" />
+        <Script src="https://unpkg.com/feather-icons" strategy="afterInteractive" />
+        <Script id="aos-init" strategy="afterInteractive">
           {`
             AOS.init({
               duration: 800,
