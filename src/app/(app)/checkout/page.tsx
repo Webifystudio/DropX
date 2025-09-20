@@ -67,6 +67,9 @@ export default function CheckoutPage() {
             status: "Processing",
             items: cartItems,
             shippingAddress: values,
+            resellerName: process.env.NEXT_PUBLIC_RESELLER_NAME,
+            resellerContact: process.env.NEXT_PUBLIC_RESELLER_CONTACT,
+            resellerId: process.env.NEXT_PUBLIC_RESELLER_ID,
         });
 
         // Create a notification for the new order

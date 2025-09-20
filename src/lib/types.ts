@@ -56,6 +56,9 @@ export type Order = {
   items: CartItem[];
   shippingAddress: ShippingAddress;
   profit?: number;
+  resellerName?: string;
+  resellerContact?: string;
+  resellerId?: string;
 };
 
 export type Notification = {

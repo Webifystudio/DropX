@@ -156,6 +156,7 @@ export default function AdminOrdersPage() {
             <TableRow>
               <TableHead>Order ID</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Reseller</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
@@ -170,6 +171,7 @@ export default function AdminOrdersPage() {
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
@@ -181,6 +183,10 @@ export default function AdminOrdersPage() {
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
                   <TableCell>{order.shippingAddress.name}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{order.resellerName}</div>
+                    <div className="text-xs text-muted-foreground">{order.resellerId}</div>
+                  </TableCell>
                   <TableCell>{new Date(order.date.seconds * 1000).toLocaleDateString()}</TableCell>
                   <TableCell>₹{order.total.toLocaleString('en-IN')}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
