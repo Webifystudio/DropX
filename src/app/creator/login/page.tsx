@@ -17,6 +17,7 @@ import { useAuth } from "@/context/auth-context";
 export default function CreatorLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [creatorId, setCreatorId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -31,6 +32,16 @@ export default function CreatorLoginPage() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (creatorId !== process.env.NEXT_PUBLIC_CREATOR_LOGIN_ID) {
+        toast({
+            title: "Invalid Creator ID",
+            description: "The Creator ID you entered is not valid.",
+            variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -68,6 +79,17 @@ export default function CreatorLoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+             <div className="space-y-2">
+              <Label htmlFor="creatorId">Creator ID</Label>
+              <Input
+                id="creatorId"
+                type="text"
+                placeholder="Enter your Creator ID"
+                value={creatorId}
+                onChange={(e) => setCreatorId(e.target.value)}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
