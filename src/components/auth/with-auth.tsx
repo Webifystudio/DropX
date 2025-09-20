@@ -10,48 +10,70 @@ interface WithAuthProps {
   requiredRole?: string;
 }
 
+function AuthLoader() {
+    return (
+        <div className="flex h-screen w-screen items-center justify-center">
+            <div className="space-y-6 w-full max-w-4xl p-6">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {Array.from({length: 4}).map((_, i) => (
+                        <div key={i} className="space-y-2">
+                             <Skeleton className="h-4 w-2/3" />
+                             <Skeleton className="h-8 w-1/2" />
+                             <Skeleton className="h-3 w-full" />
+                        </div>
+                    ))}
+                </div>
+                 <div className="space-y-4">
+                    <Skeleton className="w-full h-[400px]" />
+                 </div>
+            </div>
+        </div>
+    )
+}
+
+
 export default function withAuth<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   options: WithAuthProps = {}
 ) {
   const WithAuth: React.FC<P> = (props) => {
-    const { user, loading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
 
     useEffect(() => {
-      if (loading) {
-        return; // Wait until authentication state is loaded
+      if (authLoading) {
+        return; 
       }
 
       if (!user) {
-        // If not logged in, redirect to login page
         router.replace('/admin/login');
+        setStatus('unauthorized');
         return;
       }
       
-      // Check for required role after confirming user is loaded
       if (options.requiredRole) {
         if (user.email === options.requiredRole) {
-          setIsAuthorized(true);
+          setStatus('authorized');
         } else {
-          // If role doesn't match, redirect to home
           router.replace('/');
+          setStatus('unauthorized');
         }
       } else {
-        // If no role is required, user is authorized
-        setIsAuthorized(true);
+        setStatus('authorized');
       }
 
-    }, [user, loading, router]);
+    }, [user, authLoading, router, options.requiredRole]);
 
-    // Render a loading state or nothing while checking authorization
-    if (!isAuthorized) {
-        return null; 
+    if (status === 'loading') {
+        return <AuthLoader />;
     }
     
-    // If authorized, render the wrapped component
-    return <WrappedComponent {...props} />;
+    if (status === 'authorized') {
+        return <WrappedComponent {...props} />;
+    }
+
+    return null; // or a specific "Unauthorized" component
   };
   
   WithAuth.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
