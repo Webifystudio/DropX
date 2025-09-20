@@ -21,28 +21,36 @@ export default function withAuth<P extends object>(
 
     useEffect(() => {
       if (loading) {
-        return;
+        return; // Wait until authentication state is loaded
       }
 
       if (!user) {
+        // If not logged in, redirect to login page
         router.replace('/admin/login');
         return;
       }
       
-      if (options.requiredRole && user.email !== options.requiredRole) {
+      // Check for required role after confirming user is loaded
+      if (options.requiredRole) {
+        if (user.email === options.requiredRole) {
+          setIsAuthorized(true);
+        } else {
+          // If role doesn't match, redirect to home
           router.replace('/');
-          return;
+        }
+      } else {
+        // If no role is required, user is authorized
+        setIsAuthorized(true);
       }
-
-      setIsAuthorized(true);
 
     }, [user, loading, router]);
 
+    // Render a loading state or nothing while checking authorization
     if (!isAuthorized) {
-        // You can return a loader here, or null
         return null; 
     }
     
+    // If authorized, render the wrapped component
     return <WrappedComponent {...props} />;
   };
   
