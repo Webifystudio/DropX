@@ -1,4 +1,5 @@
 
+
 export type Product = {
   id: string;
   name: string;
@@ -72,3 +73,15 @@ export type Store = {
   creatorEmail: string;
   logoUrl?: string;
 };
+
+export type Creator = {
+    id: string;
+    name: string;
+    contact: string;
+    title: string;
+    description: string;
+    followers: number;
+    posts: number;
+    avatarUrl: string;
+    isVerified: boolean;
+}
