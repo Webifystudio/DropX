@@ -22,16 +22,20 @@ export default function AppLayout({
     const segments = pathname.split('/').filter(Boolean);
     const potentialStoreId = segments[0];
     
-    // A list of top-level routes that are NOT stores
     const nonStoreRoutes = ['product', 'cart', 'categories', 'category', 'checkout', 'orders', 'search', 'account', 'admin', 'creator'];
 
     async function fetchStore() {
+        let currentStore: Store | null = null;
         if (potentialStoreId && !nonStoreRoutes.includes(potentialStoreId)) {
             const fetchedStore = await getStore(potentialStoreId);
-            setStore(fetchedStore);
+            if (fetchedStore) {
+                currentStore = fetchedStore;
+                localStorage.setItem('currentStore', JSON.stringify(fetchedStore));
+            }
         } else {
-            setStore(null);
+            localStorage.removeItem('currentStore');
         }
+        setStore(currentStore);
         setLoading(false);
     }
 

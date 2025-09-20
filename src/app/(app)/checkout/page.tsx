@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
 import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import { useStore } from "@/context/store-context"
+import type { Store } from "@/lib/types"
 
 
 const formSchema = z.object({
@@ -41,7 +41,14 @@ export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
-  const { store } = useStore();
+  const [store, setStore] = useState<Store | null>(null);
+
+  useEffect(() => {
+    const savedStore = localStorage.getItem('currentStore');
+    if (savedStore) {
+        setStore(JSON.parse(savedStore));
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -83,6 +90,7 @@ export default function CheckoutPage() {
         });
 
         clearCart();
+        localStorage.removeItem('currentStore');
         toast({
             title: "Order Placed!",
             description: "We will message you on WhatsApp to confirm your order.",
