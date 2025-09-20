@@ -42,24 +42,29 @@ export default function withAuth<P extends object>(
     const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
 
     useEffect(() => {
+      // Don't run check until Firebase auth is initialized.
       if (authLoading) {
-        return; 
+        return;
       }
 
       if (!user) {
+        // If no user, redirect to login.
         router.replace('/admin/login');
         setStatus('unauthorized');
         return;
       }
       
       if (options.requiredRole) {
+        // If a role is required, check if user's email matches.
         if (user.email === options.requiredRole) {
           setStatus('authorized');
         } else {
+          // If role doesn't match, redirect to home.
           router.replace('/');
           setStatus('unauthorized');
         }
       } else {
+        // If no role is required, user is authorized.
         setStatus('authorized');
       }
 
@@ -73,7 +78,8 @@ export default function withAuth<P extends object>(
         return <WrappedComponent {...props} />;
     }
 
-    return null; // or a specific "Unauthorized" component
+    // Render nothing while redirecting or if unauthorized.
+    return null;
   };
   
   WithAuth.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
