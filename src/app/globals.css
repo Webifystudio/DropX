@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
  
-    --primary: 262.1 83.3% 57.8%;
+    --primary: 250 80% 55%;
     --primary-foreground: 0 0% 100%;
  
     --secondary: 210 40% 96.1%;
@@ -23,15 +23,15 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
  
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 45 100% 90%;
+    --accent-foreground: 45 100% 20%;
  
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%;
+    --ring: 250 80% 55%;
  
     --radius: 0.5rem;
 
@@ -52,8 +52,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
  
-    --primary: 263.4 95.2% 50.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 250 80% 65%;
+    --primary-foreground: 0 0% 100%;
  
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -61,15 +61,15 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
  
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 45 100% 80%;
+    --accent-foreground: 45 100% 10%;
  
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
  
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 263.4 95.2% 50.2%;
+    --ring: 250 80% 65%;
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -98,7 +98,7 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   }
   .nav-active {
-      color: #2563eb;
+      color: hsl(var(--primary));
       position: relative;
   }
   .nav-active:after {
@@ -110,7 +110,7 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background-color: #2563eb;
+      background-color: hsl(var(--primary));
   }
   .prime-badge {
       background: linear-gradient(90deg, #00a8ff, #0097e6);
