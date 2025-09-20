@@ -4,11 +4,42 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, CheckCircle, Instagram, Send, Rocket, DollarSign, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CreatorCard } from '@/components/creator/creator-card';
 
 const features = [
   { icon: Rocket, title: 'Zero Investment', description: 'Start your dropshipping business without spending a single rupee on inventory.' },
   { icon: Package, title: 'We Handle Everything', description: 'From product sourcing and inventory management to shipping, we’ve got you covered.' },
   { icon: DollarSign, title: 'Instant E-commerce Store', description: 'Get a fully-functional e-commerce website, ready to start selling from day one.' },
+];
+
+const topCreators = [
+    {
+        name: 'Sophie Bennett',
+        title: 'Fashion Influencer',
+        bio: 'Sharing my passion for style and helping you find the perfect look.',
+        avatarUrl: 'https://i.ibb.co/2S7b4T0/creator1.png',
+        followers: 312,
+        posts: 48,
+        isVerified: true,
+    },
+    {
+        name: 'Alex Rivera',
+        title: 'Gadget Guru',
+        bio: 'Unboxing the latest tech and giving you honest reviews.',
+        avatarUrl: 'https://i.ibb.co/yBNK4gS/creator2.png',
+        followers: 540,
+        posts: 82,
+        isVerified: true,
+    },
+    {
+        name: 'Priya Patel',
+        title: 'Home Decor Expert',
+        bio: 'Transforming spaces, one beautiful piece at a time.',
+        avatarUrl: 'https://i.ibb.co/xGLK53g/creator3.png',
+        followers: 450,
+        posts: 67,
+        isVerified: false,
+    },
 ];
 
 export default function CreatorPage() {
@@ -36,6 +67,20 @@ export default function CreatorPage() {
             <span className="text-sm font-medium bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full animate-pulse">
                 Early Access Beta
             </span>
+          </div>
+        </div>
+      </section>
+      
+       <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+           <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold font-headline">Meet Our Top Creators</h2>
+            <p className="text-muted-foreground mt-2">Join a community of passionate entrepreneurs.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {topCreators.map((creator) => (
+                <CreatorCard key={creator.name} {...creator} />
+            ))}
           </div>
         </div>
       </section>
