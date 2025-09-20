@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
 import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { useStore } from "@/context/store-context"
 
 
 const formSchema = z.object({
@@ -40,6 +41,7 @@ export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
+  const { store } = useStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,9 +69,8 @@ export default function CheckoutPage() {
             status: "Processing",
             items: cartItems,
             shippingAddress: values,
-            resellerName: process.env.NEXT_PUBLIC_RESELLER_NAME,
-            resellerContact: process.env.NEXT_PUBLIC_RESELLER_CONTACT,
-            resellerId: process.env.NEXT_PUBLIC_RESELLER_ID,
+            resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,
+            resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID,
         });
 
         // Create a notification for the new order

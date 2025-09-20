@@ -184,7 +184,7 @@ export default function AdminOrdersPage() {
                   <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
                   <TableCell>{order.shippingAddress.name}</TableCell>
                   <TableCell>
-                    <div className="font-medium">{order.resellerName}</div>
+                    <div className="font-medium">{order.resellerName || 'N/A'}</div>
                     <div className="text-xs text-muted-foreground">{order.resellerId}</div>
                   </TableCell>
                   <TableCell>{new Date(order.date.seconds * 1000).toLocaleDateString()}</TableCell>
