@@ -37,12 +37,12 @@ export default function OrdersPage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!user) {
+        if (!user || !user.phoneNumber) {
             setLoading(false);
             return;
         };
 
-        const q = query(collection(db, 'orders'), where("shippingAddress.whatsappNumber", "==", user.phoneNumber)); // Assuming phone number is used to link orders
+        const q = query(collection(db, 'orders'), where("shippingAddress.whatsappNumber", "==", user.phoneNumber.slice(3))); // slice(3) to remove +91
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const userOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
             setOrders(userOrders.sort((a,b) => b.date.seconds - a.date.seconds));
@@ -90,7 +90,7 @@ export default function OrdersPage() {
               <h1 className="mt-4 text-2xl font-bold">Please sign in</h1>
               <p className="mt-2 text-muted-foreground">You need to be signed in to view your orders.</p>
               <Button asChild className="mt-6">
-                <Link href="/admin/login">Sign In</Link>
+                <Link href="/account">Sign In</Link>
               </Button>
             </div>
           );

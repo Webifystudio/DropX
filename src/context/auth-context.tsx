@@ -6,6 +6,15 @@ import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/a
 import { auth } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 
+// Extends the window object to include properties we are adding
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+    confirmationResult: any;
+  }
+}
+
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;

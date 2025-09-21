@@ -65,7 +65,7 @@ export default function Header() {
             </Link>
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                 <Button variant="ghost" size="icon" className="hidden md:inline-flex">
                   <User className="text-gray-600" />
                 </Button>
               </DropdownMenuTrigger>
@@ -94,7 +94,7 @@ export default function Header() {
                     <DropdownMenuItem onClick={signOut}>Sign Out</DropdownMenuItem>
                  ): (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin/login">Sign In</Link>
+                      <Link href="/account">Sign In</Link>
                     </DropdownMenuItem>
                  )}
               </DropdownMenuContent>
