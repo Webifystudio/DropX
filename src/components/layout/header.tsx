@@ -34,7 +34,7 @@ export default function Header() {
                 {store?.logoUrl ? (
                     <Image src={store.logoUrl} alt={store.id} width={32} height={32} className="rounded-full" />
                 ) : (
-                    <h1 className="text-xl font-bold text-blue-600">DropX</h1>
+                    <h1 className="text-xl font-bold text-blue-600">{process.env.NEXT_PUBLIC_SITE_NAME || 'DropX'}</h1>
                 )}
               
               {store ? (

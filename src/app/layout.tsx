@@ -10,7 +10,7 @@ import { Providers } from "@/context/providers";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "DropX India - Online Shopping",
+  title: `${process.env.NEXT_PUBLIC_SITE_NAME || 'DropX'} India - Online Shopping`,
   description: "Your one-stop shop for everything.",
 };
 
