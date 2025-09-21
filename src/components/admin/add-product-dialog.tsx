@@ -25,6 +25,7 @@ import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
 import { Plus, Trash } from "lucide-react"
+import Image from "next/image"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -50,6 +51,7 @@ type ProductFormValues = z.infer<typeof productSchema>
 export function AddProductDialog({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const { toast } = useToast()
   
   const {
@@ -73,6 +75,17 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
   });
 
   const isFreeShipping = watch("isFreeShipping")
+  const imageFiles = watch("images");
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+        const previews = Array.from(files).map(file => URL.createObjectURL(file));
+        setImagePreviews(previews);
+    } else {
+        setImagePreviews([]);
+    }
+  }
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
@@ -121,6 +134,7 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
         description: `${data.name} has been successfully added.`,
       })
       reset()
+      setImagePreviews([]);
       setIsOpen(false)
     } catch (error) {
       console.error("Error adding product: ", error)
@@ -135,7 +149,13 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) {
+            reset();
+            setImagePreviews([]);
+        }
+    }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -222,7 +242,28 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
             
             <div className="space-y-2">
                 <Label htmlFor="images">Product Images</Label>
-                <Input id="images" type="file" multiple {...register("images")} />
+                <Input 
+                    id="images" 
+                    type="file" 
+                    multiple 
+                    {...register("images")} 
+                    onChange={handleImageChange}
+                    accept="image/*"
+                />
+                 {imagePreviews.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {imagePreviews.map((src, index) => (
+                            <div key={index} className="relative h-20 w-20">
+                                <Image
+                                    src={src}
+                                    alt={`Preview ${index + 1}`}
+                                    fill
+                                    className="rounded-md object-cover"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center space-x-4">
@@ -259,3 +300,5 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     </Dialog>
   )
 }
+
+    
