@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, ShoppingCart, User, Menu, Shield, Users } from 'lucide-react';
+import { Search, ShoppingCart, User, Shield, Users } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
@@ -27,9 +27,6 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="text-gray-600" />
-            </Button>
             <Link href={store ? `/${store.id}`: "/"} className="flex items-center space-x-2">
                 {store?.logoUrl ? (
                     <Image src={store.logoUrl} alt={store.id} width={32} height={32} className="rounded-full" />
