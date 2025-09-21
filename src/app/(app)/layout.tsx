@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { getStore } from '@/lib/stores';
 import type { Store } from '@/lib/types';
 import { StoreProvider } from '@/context/store-context';
+import Footer from "@/components/layout/footer";
 
 export default function AppLayout({
   children,
@@ -22,7 +23,7 @@ export default function AppLayout({
     const segments = pathname.split('/').filter(Boolean);
     const potentialStoreId = segments[0];
     
-    const nonStoreRoutes = ['product', 'cart', 'categories', 'category', 'checkout', 'orders', 'search', 'account', 'admin', 'creator'];
+    const nonStoreRoutes = ['product', 'cart', 'categories', 'category', 'checkout', 'orders', 'search', 'account', 'admin', 'creator', 'privacy-policy', 'terms-of-service', 'contact-us'];
 
     async function fetchStore() {
         let currentStore: Store | null = null;
@@ -33,7 +34,10 @@ export default function AppLayout({
                 localStorage.setItem('currentStore', JSON.stringify(fetchedStore));
             }
         } else {
-            localStorage.removeItem('currentStore');
+             const savedStore = localStorage.getItem('currentStore');
+             if (savedStore) {
+                currentStore = JSON.parse(savedStore);
+             }
         }
         setStore(currentStore);
         setLoading(false);
@@ -47,6 +51,7 @@ export default function AppLayout({
         <div className="relative flex min-h-screen flex-col">
           <Header />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <Footer />
           <BottomNav />
         </div>
     </StoreProvider>
