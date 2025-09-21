@@ -27,6 +27,7 @@ import { Terminal } from "lucide-react"
 import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import type { Store } from "@/lib/types"
+import { useAuth } from "@/context/auth-context"
 
 
 const formSchema = z.object({
@@ -39,6 +40,7 @@ const formSchema = z.object({
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [store, setStore] = useState<Store | null>(null);
@@ -76,6 +78,7 @@ export default function CheckoutPage() {
             status: "Processing",
             items: cartItems,
             shippingAddress: values,
+            customerEmail: user?.email,
             resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,
             resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID,
             resellerEmail: store?.creatorEmail

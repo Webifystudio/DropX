@@ -55,6 +55,7 @@ export type Order = {
   status: 'Processing' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
   items: CartItem[];
   shippingAddress: ShippingAddress;
+  customerEmail?: string;
   profit?: number;
   resellerName?: string;
   resellerContact?: string;

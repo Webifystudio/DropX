@@ -37,12 +37,12 @@ export default function OrdersPage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!user || !user.phoneNumber) {
+        if (!user || !user.email) {
             setLoading(false);
             return;
         };
 
-        const q = query(collection(db, 'orders'), where("shippingAddress.whatsappNumber", "==", user.phoneNumber.slice(3))); // slice(3) to remove +91
+        const q = query(collection(db, 'orders'), where("customerEmail", "==", user.email)); 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const userOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
             setOrders(userOrders.sort((a,b) => b.date.seconds - a.date.seconds));

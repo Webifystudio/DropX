@@ -4,78 +4,49 @@
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn, UserCircle, Phone } from 'lucide-react';
+import { LogIn, UserCircle, Phone, AtSign, KeyRound } from 'lucide-react';
 import { auth } from '@/lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function AccountPage() {
   const { user, signOut, loading } = useAuth();
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const { toast } = useToast();
 
-  useEffect(() => {
-    // We re-initialize the verifier each time the component mounts.
-    // This avoids issues with the container not being ready.
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': () => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-        }
-    });
-  }, []);
-
-  const handleSendOtp = async () => {
-    if (phone.length !== 10) {
-        toast({ title: "Invalid Phone Number", description: "Please enter a 10-digit phone number.", variant: "destructive" });
-        return;
-    }
-    setIsSendingOtp(true);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-        const appVerifier = window.recaptchaVerifier;
-        const result = await signInWithPhoneNumber(auth, `+91${phone}`, appVerifier);
-        setConfirmationResult(result);
-        toast({ title: "OTP Sent", description: "An OTP has been sent to your phone number." });
-    } catch (error) {
-        console.error("Error sending OTP:", error);
-        // Reset reCAPTCHA on error
-        if (window.recaptchaVerifier) {
-          window.recaptchaVerifier.render().then((widgetId: any) => {
-            // @ts-ignore
-            if (typeof grecaptcha !== 'undefined') {
-                grecaptcha.reset(widgetId);
-            }
-          });
-        }
-        toast({ title: "Error", description: "Failed to send OTP. Please refresh and try again.", variant: "destructive" });
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({ title: "Success!", description: "You are now logged in." });
+    } catch (error: any) {
+      console.error("Error logging in:", error);
+      toast({ title: "Login Error", description: error.message, variant: "destructive" });
     } finally {
-        setIsSendingOtp(false);
+      setIsSubmitting(false);
     }
   };
   
-  const handleVerifyOtp = async () => {
-      if (!confirmationResult) return;
-      if (otp.length !== 6) {
-          toast({ title: "Invalid OTP", description: "Please enter a 6-digit OTP.", variant: "destructive" });
-          return;
-      }
-      setIsVerifyingOtp(true);
-      try {
-          await confirmationResult.confirm(otp);
-          toast({ title: "Success!", description: "You are now logged in." });
-      } catch (error) {
-          console.error("Error verifying OTP:", error);
-          toast({ title: "Error", description: "Invalid OTP. Please try again.", variant: "destructive" });
-      } finally {
-          setIsVerifyingOtp(false);
-      }
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        toast({ title: "Account Created!", description: "You have been successfully signed up and logged in." });
+    } catch (error: any) {
+        console.error("Error signing up:", error);
+        toast({ title: "Sign Up Error", description: error.message, variant: "destructive" });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
   
   if (loading) {
@@ -110,8 +81,8 @@ export default function AccountPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 rounded-md border p-3">
-                  <Phone className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">{user.phoneNumber}</span>
+                  <AtSign className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">{user.email}</span>
               </div>
               <Button onClick={signOut} className="w-full">
                 Sign Out
@@ -120,49 +91,51 @@ export default function AccountPage() {
           </Card>
         ) : (
           <Card>
-            <CardHeader className="text-center">
-              <LogIn className="mx-auto h-12 w-12 text-primary" />
-              <CardTitle className="mt-4">Login or Sign Up</CardTitle>
-              <CardDescription>Enter your phone number to continue.</CardDescription>
+             <CardHeader className="text-center">
+                <LogIn className="mx-auto h-12 w-12 text-primary" />
+                <CardTitle className="mt-4">Welcome</CardTitle>
+                <CardDescription>Login or create an account to continue.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                {!confirmationResult ? (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <Input value="+91" disabled className="w-16" />
-                            <Input 
-                                type="tel" 
-                                placeholder="10-digit mobile number" 
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                maxLength={10}
-                            />
-                        </div>
-                        <Button onClick={handleSendOtp} disabled={isSendingOtp || phone.length !== 10} className="w-full">
-                            {isSendingOtp ? "Sending OTP..." : "Send OTP"}
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        <Input 
-                            type="number"
-                            placeholder="Enter 6-digit OTP"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            maxLength={6}
-                        />
-                        <Button onClick={handleVerifyOtp} disabled={isVerifyingOtp || otp.length !== 6} className="w-full">
-                            {isVerifyingOtp ? "Verifying..." : "Verify OTP & Login"}
-                        </Button>
-                        <Button variant="link" onClick={() => { setConfirmationResult(null); setPhone(''); }}>
-                            Use another number
-                        </Button>
-                    </div>
-                )}
+            <CardContent>
+                <Tabs defaultValue="login" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="login">Login</TabsTrigger>
+                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="login">
+                        <form onSubmit={handleLogin} className="space-y-4 pt-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="login-email">Email</Label>
+                                <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="login-password">Password</Label>
+                                <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                {isSubmitting ? "Logging in..." : "Login"}
+                            </Button>
+                        </form>
+                    </TabsContent>
+                    <TabsContent value="signup">
+                        <form onSubmit={handleSignUp} className="space-y-4 pt-4">
+                           <div className="space-y-2">
+                                <Label htmlFor="signup-email">Email</Label>
+                                <Input id="signup-email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="signup-password">Password</Label>
+                                <Input id="signup-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                {isSubmitting ? "Creating account..." : "Create Account"}
+                            </Button>
+                        </form>
+                    </TabsContent>
+                </Tabs>
             </CardContent>
           </Card>
         )}
-        <div id="recaptcha-container" className="mt-4"></div>
       </div>
     </div>
   );
