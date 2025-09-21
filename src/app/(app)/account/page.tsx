@@ -22,14 +22,14 @@ export default function AccountPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          'size': 'invisible',
-          'callback': () => {
-              // reCAPTCHA solved, allow signInWithPhoneNumber.
-          }
-      });
-    }
+    // We re-initialize the verifier each time the component mounts.
+    // This avoids issues with the container not being ready.
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': () => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+        }
+    });
   }, []);
 
   const handleSendOtp = async () => {
@@ -49,7 +49,9 @@ export default function AccountPage() {
         if (window.recaptchaVerifier) {
           window.recaptchaVerifier.render().then((widgetId: any) => {
             // @ts-ignore
-            grecaptcha.reset(widgetId);
+            if (typeof grecaptcha !== 'undefined') {
+                grecaptcha.reset(widgetId);
+            }
           });
         }
         toast({ title: "Error", description: "Failed to send OTP. Please refresh and try again.", variant: "destructive" });
