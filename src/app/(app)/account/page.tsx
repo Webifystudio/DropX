@@ -22,16 +22,13 @@ export default function AccountPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const recaptchaContainer = document.getElementById('recaptcha-container');
-    if (recaptchaContainer) {
-        // Ensure the container is empty before creating a new verifier
-        recaptchaContainer.innerHTML = '';
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible',
-            'callback': () => {
-                // reCAPTCHA solved, allow signInWithPhoneNumber.
-            }
-        });
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': () => {
+              // reCAPTCHA solved, allow signInWithPhoneNumber.
+          }
+      });
     }
   }, []);
 
@@ -48,7 +45,14 @@ export default function AccountPage() {
         toast({ title: "OTP Sent", description: "An OTP has been sent to your phone number." });
     } catch (error) {
         console.error("Error sending OTP:", error);
-        toast({ title: "Error", description: "Failed to send OTP. Please try again.", variant: "destructive" });
+        // Reset reCAPTCHA on error
+        if (window.recaptchaVerifier) {
+          window.recaptchaVerifier.render().then((widgetId: any) => {
+            // @ts-ignore
+            grecaptcha.reset(widgetId);
+          });
+        }
+        toast({ title: "Error", description: "Failed to send OTP. Please refresh and try again.", variant: "destructive" });
     } finally {
         setIsSendingOtp(false);
     }
