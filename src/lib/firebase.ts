@@ -4,13 +4,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDKZfnWcwayicnm990Xj7coHhjqQDGp57o",
-  authDomain: "nex-chat-12d4a.firebaseapp.com",
-  databaseURL: "https://nex-chat-12d4a-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "nex-chat-12d4a",
-  storageBucket: "nex-chat-12d4a.firebasestorage.app",
-  messagingSenderId: "684361971117",
-  appId: "1:684361971117:web:8576522d8ac8d1042f1d24"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
