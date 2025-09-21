@@ -80,6 +80,7 @@ export type Store = {
 export type Creator = {
     id: string;
     name: string;
+    email?: string;
     contact: string;
     title: string;
     description: string;

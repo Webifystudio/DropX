@@ -27,6 +27,7 @@ import Image from 'next/image';
 
 const creatorSchema = z.object({
   name: z.string().min(2, "Name is required"),
+  email: z.string().email("Invalid email address").optional().or(z.literal('')),
   contact: z.string().min(10, "Contact number is required"),
   title: z.string().min(2, "Title is required"),
   description: z.string().min(10, "Description is required"),
@@ -52,6 +53,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
     resolver: zodResolver(creatorSchema),
     defaultValues: {
       name: '',
+      email: '',
       contact: '',
       title: '',
       description: '',
@@ -65,6 +67,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
     if (creator) {
       form.reset({
         name: creator.name,
+        email: creator.email,
         contact: creator.contact,
         title: creator.title,
         description: creator.description,
@@ -73,7 +76,16 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
         isVerified: creator.isVerified,
       });
     } else {
-        form.reset();
+        form.reset({
+          name: '',
+          email: '',
+          contact: '',
+          title: '',
+          description: '',
+          followers: 0,
+          posts: 0,
+          isVerified: false,
+        });
     }
   }, [creator, form, isOpen]);
 
@@ -109,6 +121,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
       
       const creatorData = {
         name: data.name,
+        email: data.email,
         contact: data.contact,
         title: data.title,
         description: data.description,
@@ -159,6 +172,12 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
                     <Input id="contact" {...form.register("contact")} />
                     {form.formState.errors.contact && <p className="text-sm text-destructive">{form.formState.errors.contact.message}</p>}
                 </div>
+            </div>
+            
+            <div className="space-y-2">
+                <Label htmlFor="email">Email (Optional)</Label>
+                <Input id="email" type="email" {...form.register("email")} />
+                {form.formState.errors.email && <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>}
             </div>
 
              <div className="space-y-2">
