@@ -90,9 +90,9 @@ export default function AccountPage() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg border">
                     <LogIn className="h-6 w-6" />
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight">Sign in with email</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Sign in to your account</h1>
                 <p className="mt-2 text-muted-foreground">
-                    Make a new doc to bring your words, data, and teams together. For free
+                    Enter your email below to login or create an account.
                 </p>
             </div>
             
@@ -139,7 +139,7 @@ export default function AccountPage() {
                             </Link>
                         </div>
                         <Button type="submit" className="w-full bg-gray-900 text-white hover:bg-gray-800" disabled={isSubmitting}>
-                            {isSubmitting ? 'Signing in...' : 'Get Started'}
+                            {isSubmitting ? 'Signing in...' : 'Sign In'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -178,7 +178,7 @@ export default function AccountPage() {
                             </button>
                         </div>
                         <Button type="submit" className="w-full bg-gray-900 text-white hover:bg-gray-800" disabled={isSubmitting}>
-                            {isSubmitting ? 'Creating account...' : 'Get Started'}
+                            {isSubmitting ? 'Creating account...' : 'Create Account'}
                         </Button>
                     </form>
                 </TabsContent>
