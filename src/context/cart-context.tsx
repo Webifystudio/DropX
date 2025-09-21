@@ -17,24 +17,26 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const getInitialCart = (): CartItem[] => {
-    if (typeof window !== 'undefined') {
-        const savedCart = localStorage.getItem('cart');
-        return savedCart ? JSON.parse(savedCart) : [];
-    }
-    return [];
-}
-
-
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>(getInitialCart);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    setIsClient(true);
     if (typeof window !== 'undefined') {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+            setCartItems(JSON.parse(savedCart));
+        }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isClient && typeof window !== 'undefined') {
       localStorage.setItem('cart', JSON.stringify(cartItems));
     }
-  }, [cartItems]);
+  }, [cartItems, isClient]);
 
 
   const addToCart = (product: Product) => {
@@ -86,7 +88,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
-        cartCount,
+        cartCount: isClient ? cartCount : 0, // Return 0 on server
         cartTotal
       }}
     >
