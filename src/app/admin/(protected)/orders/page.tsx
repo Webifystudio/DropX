@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '@/lib/types';
@@ -32,6 +33,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { sendOrderStatusEmail } from '@/ai/flows/send-email-flow';
+import { render } from '@react-email/components';
+import { OrderStatusEmail } from '@/components/emails/order-status-email';
 
 type OrderWithId = Order & { id: string };
 
@@ -57,6 +61,9 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailToSend, setEmailToSend] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [profit, setProfit] = useState(0);
   const { toast } = useToast();
 
@@ -138,6 +145,43 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleSendStatusEmail = async () => {
+    if (!selectedOrder || !emailToSend) return;
+
+    setIsSendingEmail(true);
+    try {
+        const emailHtml = render(<OrderStatusEmail order={selectedOrder} />);
+        
+        await sendOrderStatusEmail({
+            to: emailToSend,
+            subject: `Your DropX Order #${selectedOrder.id.slice(-6)} is ${selectedOrder.status}`,
+            html: emailHtml,
+        });
+
+        toast({
+            title: "Email Sent!",
+            description: `Order status email has been sent to ${emailToSend}.`
+        });
+        setIsEmailModalOpen(false);
+        setEmailToSend('');
+        setSelectedOrder(null);
+    } catch (error) {
+        console.error("Failed to send email:", error);
+        toast({
+            title: "Error Sending Email",
+            description: "There was a problem sending the email. Please check the console.",
+            variant: "destructive"
+        });
+    } finally {
+        setIsSendingEmail(false);
+    }
+  };
+
+  const openEmailModal = (order: OrderWithId) => {
+    setSelectedOrder(order);
+    setIsEmailModalOpen(true);
+  }
+
   const viewOrderDetails = (order: OrderWithId) => {
       setSelectedOrder(order);
       setIsDetailsOpen(true);
@@ -201,9 +245,15 @@ export default function AdminOrdersPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => viewOrderDetails(order)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openEmailModal(order)}>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Send Status Email
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Confirmed')}>Mark as Confirmed</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Shipped')}>Mark as Shipped</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Delivered')}>Mark as Delivered</DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive" onClick={() => updateOrderStatus(order.id, 'Cancelled')}>Cancel Order</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -272,6 +322,33 @@ export default function AdminOrdersPage() {
             <DialogFooter>
                 <Button variant="outline" onClick={() => setIsProfitModalOpen(false)}>Cancel</Button>
                 <Button onClick={handleProfitSubmit}>Confirm Delivery & Save Profit</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Send Order Status Email</DialogTitle>
+                <DialogDescription>
+                    Enter the customer's email to send a status update for order #{selectedOrder?.id.slice(-6)}.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Label htmlFor="email">Customer's Email</Label>
+                <Input 
+                    id="email" 
+                    type="email"
+                    value={emailToSend} 
+                    onChange={(e) => setEmailToSend(e.target.value)}
+                    placeholder="customer@example.com"
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEmailModalOpen(false)}>Cancel</Button>
+                <Button onClick={handleSendStatusEmail} disabled={isSendingEmail || !emailToSend}>
+                    {isSendingEmail ? 'Sending...' : 'Send Email'}
+                </Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
