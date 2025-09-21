@@ -188,6 +188,7 @@ export default function AdminOrdersPage() {
 
   const openEmailModal = (order: OrderWithId) => {
     setSelectedOrder(order);
+    setEmailToSend(order.resellerEmail || '');
     setIsEmailModalOpen(true);
   }
 

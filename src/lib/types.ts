@@ -59,6 +59,7 @@ export type Order = {
   resellerName?: string;
   resellerContact?: string;
   resellerId?: string;
+  resellerEmail?: string;
 };
 
 export type Notification = {

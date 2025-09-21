@@ -78,6 +78,7 @@ export default function CheckoutPage() {
             shippingAddress: values,
             resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,
             resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID,
+            resellerEmail: store?.creatorEmail
         });
 
         // Create a notification for the new order
