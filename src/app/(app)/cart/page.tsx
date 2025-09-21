@@ -9,9 +9,58 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/account');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8 font-headline">Your Cart</h1>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-4">
+            <Card>
+              <CardContent className="flex gap-4 p-4">
+                <Skeleton className="h-24 w-24" />
+                <div className="flex-grow space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-5 w-1/4" />
+                  <Skeleton className="h-8 w-1/2" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-12 w-full" />
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (cartCount === 0) {
     return (
