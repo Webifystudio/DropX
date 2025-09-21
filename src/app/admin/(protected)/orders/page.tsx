@@ -1,14 +1,13 @@
 
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle, Mail } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -58,6 +57,7 @@ function getStatusBadge(status: 'Processing' | 'Shipped' | 'Delivered' | 'Confir
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderWithId[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
@@ -75,6 +75,15 @@ export default function AdminOrdersPage() {
     });
     return () => unsubscribe();
   }, []);
+  
+  const filteredOrders = useMemo(() => {
+    if (!searchQuery) {
+        return orders;
+    }
+    return orders.filter(order =>
+        order.id.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, orders]);
   
   const createNotification = async (orderId: string, status: string) => {
     let title = '';
@@ -190,9 +199,21 @@ export default function AdminOrdersPage() {
   return (
     <>
     <Card>
-      <CardHeader>
-        <CardTitle>Orders</CardTitle>
-        <CardDescription>Manage your customer orders.</CardDescription>
+      <CardHeader className="sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <CardTitle>Orders</CardTitle>
+            <CardDescription>Manage your customer orders.</CardDescription>
+        </div>
+        <div className="relative mt-4 sm:mt-0 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search by Order ID..."
+              className="pl-10 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -223,7 +244,7 @@ export default function AdminOrdersPage() {
                 </TableRow>
               ))
             ) : (
-              orders.map((order) => (
+              filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
                   <TableCell>{order.shippingAddress.name}</TableCell>
