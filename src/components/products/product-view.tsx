@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -15,8 +16,10 @@ import {
     CarouselItem,
   } from "@/components/ui/carousel"
 import { useCart } from '@/context/cart-context';
+import { useAuth } from '@/context/auth-context';
 import { useState } from 'react';
 import Link from 'next/link';
+import { Textarea } from '../ui/textarea';
 
 type ProductViewProps = {
   product: Product;
@@ -28,6 +31,7 @@ type ProductViewProps = {
 export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
   const router = useRouter();
   const { addToCart, cartCount } = useCart();
+  const { user } = useAuth();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
 
   const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
@@ -149,6 +153,37 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                             </div>
                         )}
                     </div>
+                     <div className="mt-6">
+                        <h3 className="text-lg font-semibold mb-2">Ratings & Reviews</h3>
+                        {/* This would be populated by actual reviews */}
+                        <div className="space-y-4">
+                            <div className="flex gap-3">
+                                <div className="flex-shrink-0 text-yellow-400">
+                                    {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 inline fill-current" />)}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Great product!</p>
+                                    <p className="text-xs text-muted-foreground">by Rohan - 2 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {user ? (
+                            <div className="mt-4">
+                                <h4 className="font-semibold mb-2">Write a review</h4>
+                                <div className="flex items-center gap-1 mb-2">
+                                    {[...Array(5)].map((_, i) => <Star key={i} className="h-6 w-6 text-gray-300 cursor-pointer hover:text-yellow-400" />)}
+                                </div>
+                                <Textarea placeholder="Share your thoughts..." />
+                                <Button className="mt-2">Submit Review</Button>
+                            </div>
+                        ) : (
+                            <div className="mt-4 text-center text-sm text-muted-foreground p-4 border rounded-md">
+                                <p>You must be logged in to write a review.</p>
+                                <Button variant="link" asChild><Link href="/account">Login or Sign Up</Link></Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="p-4 border-t bg-background">
@@ -165,3 +200,4 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
     </Drawer.Root>
   );
 }
+
