@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+        <link rel="icon" href="/static/favicon.ico" sizes="any" />
       </head>
       <body
         className={cn(
