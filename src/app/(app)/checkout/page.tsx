@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -26,9 +27,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal, History } from "lucide-react"
 import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import type { Store, ShippingAddress } from "@/lib/types"
+import type { Store, ShippingAddress, Order } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 import { sendPushNotification } from "@/ai/flows/push-notifications-flow"
+import { sendOrderStatusEmail } from "@/ai/flows/send-email-flow"
+import { render } from "@react-email/components"
+import { AdminNewOrderEmail } from "@/components/emails/admin-new-order-email"
 
 
 const formSchema = z.object({
@@ -92,21 +96,55 @@ export default function CheckoutPage() {
     });
   }
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const sendAdminOrderEmail = async (order: Order) => {
     try {
-        const orderDocRef = await addDoc(collection(db, "orders"), {
+        const emailHtml = render(<AdminNewOrderEmail order={order} />);
+        
+        await sendOrderStatusEmail({
+            to: 'dropxindia.in@gmail.com',
+            subject: `[New Order] #${order.id.slice(-6)} from ${order.shippingAddress.name}`,
+            html: emailHtml,
+        });
+    } catch (error) {
+        console.error("Failed to send admin new order email:", error);
+        // We don't show a toast here to not confuse the user, as their order was successful.
+    }
+  }
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if(!user) {
+        toast({
+            title: "Authentication Error",
+            description: "You must be logged in to place an order.",
+            variant: "destructive",
+        });
+        return;
+    }
+
+    try {
+        const orderData = {
             date: Timestamp.now(),
             total: cartTotal,
-            status: "Processing",
+            status: "Processing" as const,
             items: cartItems,
             shippingAddress: values,
-            customerEmail: user?.email,
+            customerEmail: user.email,
             resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,
             resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID,
             resellerEmail: store?.creatorEmail || 'akirastreamingzone@gmail.com'
-        });
+        };
 
-        // Create a notification for the new order
+        const orderDocRef = await addDoc(collection(db, "orders"), orderData);
+
+        const newOrder: Order = {
+            id: orderDocRef.id,
+            ...orderData
+        };
+
+        // Send notification email to admin
+        await sendAdminOrderEmail(newOrder);
+
+        // Create a notification for the new order in the admin panel
         await addDoc(collection(db, "notifications"), {
             title: "New Order Received",
             description: `Order #${orderDocRef.id.slice(-6)} for ₹${cartTotal.toLocaleString('en-IN')} has been placed.`,
@@ -293,3 +331,5 @@ export default function CheckoutPage() {
     </div>
   )
 }
+
+    
