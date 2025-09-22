@@ -20,7 +20,6 @@ interface CreatorEarningsEmailProps {
   creatorName: string;
   transactionType: 'add' | 'withdraw';
   amount: number;
-  newBalance: number;
 }
 
 const main = {
@@ -74,33 +73,13 @@ const transactionText = {
     textAlign: 'center' as const,
 };
 
-const balanceContainer = {
-    backgroundColor: '#f0f4ff',
-    padding: '20px',
-    borderRadius: '8px',
-    textAlign: 'center' as const,
-};
-
-const balanceText = {
-    fontSize: '16px',
-    color: '#525f7f',
-    margin: '0 0 8px 0',
-};
-
-const balanceAmount = {
-    fontSize: '32px',
-    fontWeight: 'bold' as const,
-    color: '#333',
-    margin: 0,
-};
-
 const footer = {
   color: '#8898aa',
   fontSize: '12px',
   lineHeight: '16px',
 };
 
-export const CreatorEarningsEmail = ({ creatorName, transactionType, amount, newBalance }: CreatorEarningsEmailProps) => {
+export const CreatorEarningsEmail = ({ creatorName, transactionType, amount }: CreatorEarningsEmailProps) => {
   const previewText = `Your earnings have been updated!`;
   const transactionVerb = transactionType === 'add' ? 'added to' : 'withdrawn from';
   const amountColor = transactionType === 'add' ? '#28a745' : '#dc3545';
@@ -130,11 +109,6 @@ export const CreatorEarningsEmail = ({ creatorName, transactionType, amount, new
             <Text style={transactionText}>
               An amount of <span style={{ color: amountColor }}>₹{amount.toLocaleString('en-IN')}</span> has been {transactionVerb} your account.
             </Text>
-
-            <Section style={balanceContainer}>
-                <Text style={balanceText}>Your New Earnings Balance</Text>
-                <Text style={balanceAmount}>₹{newBalance.toLocaleString('en-IN')}</Text>
-            </Section>
 
             <Hr style={hr} />
 

@@ -80,7 +80,6 @@ function ManageEarningsDialog({ creator, mode, children }: ManageEarningsDialogP
                 creatorName={creator.name} 
                 transactionType={mode}
                 amount={amount}
-                newBalance={mode === 'add' ? (creator.totalEarnings || 0) + amount : (creator.totalEarnings || 0) - amount}
             />);
             
             await sendOrderStatusEmail({
