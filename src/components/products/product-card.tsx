@@ -14,7 +14,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
   
   return (
-    <div className="group block h-full">
+    <Link href={`/product/${product.id}`} className="group block h-full">
       <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 border-none shadow-none rounded-lg bg-transparent">
         <CardContent className="p-0">
           <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden">
@@ -47,6 +47,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </Link>
   );
 }
