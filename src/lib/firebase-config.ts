@@ -1,12 +1,11 @@
 
 // Replace these with your actual Firebase configuration values
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-  measurementId: "G-YOUR_MEASUREMENT_ID",
+  apiKey: "AIzaSyDbW-J52EFol8-ROyHLfl3Y4bkEuBhkPuM",
+  authDomain: "dropxindiq.firebaseapp.com",
+  projectId: "dropxindiq",
+  storageBucket: "dropxindiq.appspot.com",
+  messagingSenderId: "985807666698",
+  appId: "1:985807666698:web:7ebaee02e9c48cae8769f3",
+  measurementId: "G-7MT17659G5"
 };
