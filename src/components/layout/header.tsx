@@ -2,103 +2,32 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, ShoppingCart, User, Shield, Users } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
-import { useAuth } from '@/context/auth-context';
-import { Button } from '../ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useStore } from '@/context/store-context';
-import Image from 'next/image';
+import { Logo } from '../icons';
 
 export default function Header() {
   const { cartCount } = useCart();
-  const { user, signOut } = useAuth();
   const { store } = useStore();
   
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <Link href={store ? `/${store.id}`: "/"} className="flex items-center space-x-2">
-                {store?.logoUrl ? (
-                    <Image src={store.logoUrl} alt={store.id} width={32} height={32} className="rounded-full" />
-                ) : (
-                    <h1 className="text-xl font-bold text-blue-600">{process.env.NEXT_PUBLIC_SITE_NAME || 'DropX'}</h1>
-                )}
-              
-              {store ? (
-                  <span className="text-xl font-bold">{store.id}</span>
-              ) : (
-                <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                    India
-                </span>
-              )}
-            </Link>
-          </div>
+          <Link href={store ? `/${store.id}`: "/"} className="flex items-center space-x-2">
+              <Logo className="h-7 w-7 text-gray-900" />
+          </Link>
           
-          <div className="hidden md:flex items-center space-x-6">
-             <Link href="/creator" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Become a Creator
-              </Link>
-          </div>
-
           <div className="flex items-center space-x-4">
-            <Link href="/search">
-                <Search className="h-6 w-6 text-gray-600" />
-            </Link>
-            <Link href="/cart" className="relative">
-              <ShoppingCart className="text-gray-600" />
+            <Link href="/cart" className="relative p-2">
+              <ShoppingCart className="h-6 w-6 text-gray-800" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
             </Link>
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                 <Button variant="ghost" size="icon" className="hidden md:inline-flex">
-                  <User className="text-gray-600" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/account">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                   <Link href="/orders">Orders</Link>
-                </DropdownMenuItem>
-                {user && user.email === 'akirastreamingzone@gmail.com' && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                       <Link href="/admin">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Admin Panel
-                       </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                 <DropdownMenuSeparator />
-                 {user ? (
-                    <DropdownMenuItem onClick={signOut}>Sign Out</DropdownMenuItem>
-                 ): (
-                    <DropdownMenuItem asChild>
-                      <Link href="/account">Sign In</Link>
-                    </DropdownMenuItem>
-                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </div>
