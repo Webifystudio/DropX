@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useStore } from '@/context/store-context';
-import { Logo } from '../icons';
 
 export default function Header() {
   const { cartCount } = useCart();
@@ -15,7 +14,6 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <Link href={store ? `/${store.id}`: "/"} className="flex items-center space-x-2">
-              <Logo className="h-7 w-7" />
               <span className="font-bold text-xl">{process.env.NEXT_PUBLIC_SITE_NAME || 'DropX'}</span>
           </Link>
           

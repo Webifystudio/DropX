@@ -1,7 +1,6 @@
 
 import Link from 'next/link';
 import { Instagram, Youtube } from 'lucide-react';
-import { Logo } from '../icons';
 
 export default function Footer() {
     const instagramLink = process.env.NEXT_PUBLIC_INSTAGRAM_LINK || '#';
@@ -50,7 +49,6 @@ export default function Footer() {
                 </div>
                 <div className="border-t mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
                     <div className="flex items-center gap-2 mb-4 md:mb-0">
-                         <Logo className="h-6 w-6 text-primary" />
                         <span className="font-bold">{process.env.NEXT_PUBLIC_SITE_NAME || 'DropX'} India</span>
                     </div>
                     <p className="text-sm text-muted-foreground">

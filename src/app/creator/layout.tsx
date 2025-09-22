@@ -1,5 +1,4 @@
 
-import { Logo } from "@/components/icons";
 import Link from "next/link";
 
 export default function CreatorLayout({
@@ -12,7 +11,6 @@ export default function CreatorLayout({
       <header className="sticky top-0 z-40 bg-white shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-6 w-6 text-primary" />
             <span className="font-bold">DropX Creator</span>
           </Link>
         </div>

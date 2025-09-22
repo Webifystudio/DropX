@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
-import { Logo } from '@/components/icons';
 import { CheckCircle, Package, Truck, User, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -53,7 +52,6 @@ export default async function TrackOrderPage({ params }: TrackOrderPageProps) {
         <div className="bg-muted min-h-screen py-8 sm:py-12 px-4">
             <div className="container mx-auto max-w-lg">
                  <div className="flex items-center justify-center gap-2 mb-6">
-                    <Logo className="h-7 w-7 text-primary" />
                     <span className="text-xl font-bold">{process.env.NEXT_PUBLIC_SITE_NAME || 'DropX'}</span>
                 </div>
 
