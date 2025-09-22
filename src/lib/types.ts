@@ -91,4 +91,13 @@ export type Creator = {
     avatarUrl: string;
     isVerified: boolean;
     totalEarnings?: number;
-}
+};
+
+export type HeroSectionConfig = {
+  heading: string;
+  subheading: string;
+  buttonText: string;
+  linkType: 'category' | 'custom';
+  link: string;
+  imageUrl: string;
+};
