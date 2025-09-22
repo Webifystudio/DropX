@@ -46,13 +46,15 @@ export default function AppLayout({
     fetchStore();
   }, [pathname]);
 
+  const showBottomNav = pathname !== '/cart';
+
   return (
     <StoreProvider store={store}>
         <div className="relative flex min-h-screen flex-col">
           <Header />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer />
-          <BottomNav />
+          {showBottomNav && <BottomNav />}
         </div>
     </StoreProvider>
   );
