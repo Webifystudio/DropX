@@ -141,7 +141,9 @@ export default function OrdersPage() {
             <Separator />
             <div className="p-6 flex justify-between items-center">
                 <span className="font-semibold text-lg">Total: ₹{order.total.toLocaleString('en-IN')}</span>
-                <Button variant="outline">Track Order</Button>
+                <Button variant="outline" asChild>
+                  <Link href={`/track/${order.id}`}>Track Order</Link>
+                </Button>
             </div>
           </Card>
         ))}
