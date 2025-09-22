@@ -23,10 +23,10 @@ import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Terminal } from "lucide-react"
+import { Terminal, History } from "lucide-react"
 import { collection, addDoc, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import type { Store } from "@/lib/types"
+import type { Store, ShippingAddress } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 
 
@@ -44,11 +44,16 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [store, setStore] = useState<Store | null>(null);
+  const [savedAddress, setSavedAddress] = useState<ShippingAddress | null>(null);
 
   useEffect(() => {
     const savedStore = localStorage.getItem('currentStore');
     if (savedStore) {
         setStore(JSON.parse(savedStore));
+    }
+    const addressFromStorage = localStorage.getItem('savedShippingAddress');
+    if (addressFromStorage) {
+        setSavedAddress(JSON.parse(addressFromStorage));
     }
   }, []);
 
@@ -93,6 +98,9 @@ export default function CheckoutPage() {
             link: `/admin/orders`,
         });
 
+        // Save address to local storage on successful order
+        localStorage.setItem('savedShippingAddress', JSON.stringify(values));
+
         clearCart();
         localStorage.removeItem('currentStore');
         toast({
@@ -125,6 +133,16 @@ export default function CheckoutPage() {
               <CardTitle>Shipping Information</CardTitle>
             </CardHeader>
             <CardContent>
+              {savedAddress && (
+                  <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => form.reset(savedAddress)}
+                      className="w-full mb-6"
+                  >
+                      <History className="mr-2 h-4 w-4" /> Use Previous Address
+                  </Button>
+              )}
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
