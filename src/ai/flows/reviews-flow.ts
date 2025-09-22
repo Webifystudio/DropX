@@ -84,7 +84,15 @@ const getReviewsFlow = ai.defineFlow(
         orderBy('date', 'desc')
       );
       const querySnapshot = await getDocs(q);
-      const reviews = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const reviews = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          // Convert Firestore Timestamp to serializable Date
+          return { 
+              id: doc.id, 
+              ...data,
+              date: data.date.toDate() 
+          };
+      });
       return reviews;
     }
   );
