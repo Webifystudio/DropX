@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -22,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/static/favicon.ico" sizes="any" />
+        <link rel="icon" href="https://i.ibb.co/CVCm52w/logo.png" sizes="any" />
       </head>
       <body
         className={cn(
