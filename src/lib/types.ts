@@ -78,6 +78,7 @@ export type Store = {
   creatorId: string;
   creatorEmail: string;
   logoUrl?: string;
+  logo?: string;
 };
 
 export type Creator = {
