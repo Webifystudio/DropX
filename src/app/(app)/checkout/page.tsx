@@ -81,7 +81,7 @@ export default function CheckoutPage() {
             customerEmail: user?.email,
             resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,
             resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID,
-            resellerEmail: store?.creatorEmail
+            resellerEmail: store?.creatorEmail || 'akirastreamingzone@gmail.com'
         });
 
         // Create a notification for the new order
