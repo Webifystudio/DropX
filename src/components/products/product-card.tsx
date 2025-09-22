@@ -34,8 +34,8 @@ export function ProductCard({ product }: ProductCardProps) {
                 <span className="font-bold text-gray-800">H&M</span>
                 <span>•</span>
                 <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                <span className="font-semibold text-gray-800">{product.rating || 4.8}</span>
-                <span>({product.reviewCount || 178})</span>
+                <span className="font-semibold text-gray-800">{product.rating?.toFixed(1) || 'N/A'}</span>
+                <span>({product.reviewCount || 0})</span>
             </div>
             <h3 className="text-base font-semibold my-1 line-clamp-1">{product.name}</h3>
             <div className="flex items-baseline gap-2">

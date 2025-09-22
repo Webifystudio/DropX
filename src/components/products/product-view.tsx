@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Drawer } from 'vaul';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Product } from '@/lib/types';
+import type { Product, Review } from '@/lib/types';
 import { ArrowLeft, Heart, Share, Star, ShoppingCart } from 'lucide-react';
 import { AddToCartButton } from './add-to-cart-button';
 import {
@@ -17,9 +17,11 @@ import {
   } from "@/components/ui/carousel"
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Textarea } from '../ui/textarea';
+import { getReviews, submitReview as submitReviewFlow } from '@/ai/flows/reviews-flow';
+import { useToast } from '@/hooks/use-toast';
 
 type ProductViewProps = {
   product: Product;
@@ -33,13 +35,70 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
   const { addToCart, cartCount } = useCart();
   const { user } = useAuth();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
+  
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
+  const fetchReviews = async () => {
+    setLoadingReviews(true);
+    const fetchedReviews = await getReviews(product.id);
+    setReviews(fetchedReviews);
+    setLoadingReviews(false);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchReviews();
+    }
+  }, [isOpen, product.id]);
+
 
   const handleBuyNow = () => {
     addToCart(product);
     router.push('/cart');
   }
+
+  const handleReviewSubmit = async () => {
+    if (!user) {
+        toast({ title: "Authentication required", description: "You must be logged in to submit a review.", variant: "destructive" });
+        return;
+    }
+    if (rating === 0) {
+        toast({ title: "Rating required", description: "Please select a star rating.", variant: "destructive" });
+        return;
+    }
+    if (reviewText.trim() === '') {
+        toast({ title: "Review text required", description: "Please write a review.", variant: "destructive" });
+        return;
+    }
+
+    setIsSubmitting(true);
+    try {
+        await submitReviewFlow({
+            productId: product.id,
+            userId: user.uid,
+            userName: user.displayName || user.email || "Anonymous",
+            rating,
+            text: reviewText,
+        });
+        toast({ title: "Review submitted!", description: "Thank you for your feedback." });
+        setReviewText('');
+        setRating(0);
+        fetchReviews(); // Refresh reviews
+        // We might also want to trigger a re-fetch of the product data itself if the average rating is now displayed on the page.
+    } catch (error) {
+        console.error("Error submitting review: ", error);
+        toast({ title: "Error", description: "Failed to submit review.", variant: "destructive" });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
 
   return (
     <Drawer.Root open={isOpen} onOpenChange={setIsOpen} shouldScaleBackground>
@@ -96,8 +155,8 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                                 <span className="font-bold text-gray-800">H&M</span>
                                 <span className="text-xs">•</span>
                                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                <span className="font-semibold text-gray-800">{product.rating || 4.9}</span>
-                                <span className="text-xs">({product.reviewCount || 136})</span>
+                                <span className="font-semibold text-gray-800">{product.rating?.toFixed(1) || 'N/A'}</span>
+                                <span className="text-xs">({product.reviewCount || 0} reviews)</span>
                             </div>
                              <h1 className="text-2xl font-bold font-headline mt-1">{product.name}</h1>
                         </div>
@@ -120,21 +179,6 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                     </div>
 
                     <div className="mt-6 grid grid-cols-2 gap-4">
-                         <div>
-                            <p className="font-semibold mb-2">Colors</p>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-2 border-primary ring-2 ring-primary/50">
-                                    <div className="h-6 w-6 rounded-full bg-blue-900" />
-                                </Button>
-                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-2 border-transparent">
-                                     <div className="h-6 w-6 rounded-full bg-blue-500" />
-                                </Button>
-                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-2 border-transparent">
-                                     <div className="h-6 w-6 rounded-full bg-sky-200" />
-                                </Button>
-                            </div>
-                        </div>
-
                         {product.sizes && product.sizes.length > 0 && (
                             <div>
                                 <p className="font-semibold mb-2">Size</p>
@@ -155,27 +199,50 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                     </div>
                      <div className="mt-6">
                         <h3 className="text-lg font-semibold mb-2">Ratings & Reviews</h3>
-                        {/* This would be populated by actual reviews */}
                         <div className="space-y-4">
-                            <div className="flex gap-3">
-                                <div className="flex-shrink-0 text-yellow-400">
-                                    {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 inline fill-current" />)}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium">Great product!</p>
-                                    <p className="text-xs text-muted-foreground">by Rohan - 2 days ago</p>
-                                </div>
-                            </div>
+                           {loadingReviews ? (
+                             <p>Loading reviews...</p>
+                           ) : reviews.length > 0 ? (
+                                reviews.map(review => (
+                                    <div key={review.id} className="flex gap-3">
+                                        <div className="flex-shrink-0 text-yellow-400">
+                                            {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 inline ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />)}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium">{review.text}</p>
+                                            <p className="text-xs text-muted-foreground">by {review.userName} - {new Date(review.date.seconds * 1000).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                ))
+                           ) : (
+                            <p className="text-sm text-muted-foreground">No reviews yet.</p>
+                           )}
                         </div>
 
                         {user ? (
                             <div className="mt-4">
                                 <h4 className="font-semibold mb-2">Write a review</h4>
-                                <div className="flex items-center gap-1 mb-2">
-                                    {[...Array(5)].map((_, i) => <Star key={i} className="h-6 w-6 text-gray-300 cursor-pointer hover:text-yellow-400" />)}
+                                <div className="flex items-center gap-1 mb-2" onMouseLeave={() => setHoverRating(0)}>
+                                    {[...Array(5)].map((_, i) => {
+                                        const starValue = i + 1;
+                                        return (
+                                            <Star 
+                                                key={i} 
+                                                className={`h-6 w-6 cursor-pointer ${starValue <= (hoverRating || rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                                                onClick={() => setRating(starValue)}
+                                                onMouseEnter={() => setHoverRating(starValue)}
+                                            />
+                                        )
+                                    })}
                                 </div>
-                                <Textarea placeholder="Share your thoughts..." />
-                                <Button className="mt-2">Submit Review</Button>
+                                <Textarea 
+                                    placeholder="Share your thoughts..." 
+                                    value={reviewText}
+                                    onChange={(e) => setReviewText(e.target.value)}
+                                />
+                                <Button className="mt-2" onClick={handleReviewSubmit} disabled={isSubmitting}>
+                                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                                </Button>
                             </div>
                         ) : (
                             <div className="mt-4 text-center text-sm text-muted-foreground p-4 border rounded-md">

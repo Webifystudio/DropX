@@ -29,10 +29,11 @@ export type ProductCategory = {
 export type Review = {
   id: string;
   productId: string;
-  author: string;
+  userId: string;
+  userName: string;
   rating: number;
   text: string;
-  date: string;
+  date: any; // Firebase Timestamp
 };
 
 export type CartItem = {
