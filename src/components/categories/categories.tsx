@@ -2,16 +2,15 @@
 import { categories } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
+import * as Icons from 'lucide-react';
 
-const categoryImages: { [key: string]: string } = {
-    "electronics": "https://i.ibb.co/VvZqV64/cat-electronics.png",
-    "apparel-clothing": "https://i.ibb.co/b3vTJnB/cat-women.png",
-    "home-goods": "https://i.ibb.co/ZKYcW1G/cat-home.png",
-    "health-beauty": "https://i.ibb.co/Y05r2fx/cat-beauty.png",
-    "sports-outdoors": "https://i.ibb.co/RSCW40W/cat-sports.png",
-    "books-media": "https://i.ibb.co/VvZqV64/cat-electronics.png",
-    "more": "https://i.ibb.co/VvZqV64/cat-electronics.png",
+const DynamicIcon = ({ name }: { name: string }) => {
+  const Icon = (Icons as any)[name];
+  if (!Icon) {
+    // Fallback Icon
+    return <Icons.ShoppingBag className="h-8 w-8 text-primary" />;
+  }
+  return <Icon className="h-8 w-8 text-primary" />;
 };
 
 
@@ -29,11 +28,11 @@ export function Categories() {
         </div>
         <div className="flex justify-between overflow-x-auto space-x-4 pb-4">
           {displayCategories.map((category) => (
-            <Link key={category.id} href={`/category/${category.id}`} className="flex-shrink-0 text-center group">
-              <div className="mx-auto h-16 w-16 relative overflow-hidden rounded-full transition-all duration-300 group-hover:scale-105 border-2 border-transparent group-hover:border-primary">
-                <Image src={categoryImages[category.id] || "https://picsum.photos/seed/cat/100/100"} alt={category.name} fill className="object-cover" data-ai-hint="fashion category" />
+            <Link key={category.id} href={`/category/${category.id}`} className="flex-shrink-0 text-center group w-20">
+              <div className="mx-auto h-16 w-16 flex items-center justify-center overflow-hidden rounded-full transition-all duration-300 group-hover:scale-105 border-2 bg-primary/10 group-hover:bg-primary/20 group-hover:border-primary">
+                <DynamicIcon name={category.icon} />
               </div>
-              <p className="mt-2 text-sm font-medium text-gray-800">{category.name}</p>
+              <p className="mt-2 text-sm font-medium text-gray-800 truncate">{category.name}</p>
             </Link>
           ))}
         </div>
