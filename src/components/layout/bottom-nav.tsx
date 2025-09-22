@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', icon: Home, label: 'Home' },
   { href: '/search', icon: Search, label: 'Explore' },
-  { href: '/notifications', icon: Bell, label: 'Notification' },
+  { href: '/orders', icon: Bell, label: 'Orders' },
   { href: '/account', icon: User, label: 'Profile' },
 ];
 
@@ -28,7 +28,7 @@ export default function BottomNav() {
                             isActive ? "text-primary" : "hover:text-primary"
                         )}>
                             <div className="relative">
-                                <item.icon className={cn("w-6 h-6 transition-transform", isActive ? "scale-110" : "")} />
+                                <item.icon className={cn("w-6 h-6 transition-transform", isActive ? "scale-110" : "")} strokeWidth={isActive ? 2.5 : 2} />
                             </div>
                             <span className={cn("text-xs mt-1", isActive ? "font-semibold" : "font-normal")}>{item.label}</span>
                              {isActive && (
