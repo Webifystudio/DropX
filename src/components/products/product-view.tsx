@@ -7,7 +7,7 @@ import { Drawer } from 'vaul';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
-import { ArrowLeft, Heart, Share, Star } from 'lucide-react';
+import { ArrowLeft, Heart, Share, Star, ShoppingCart } from 'lucide-react';
 import { AddToCartButton } from './add-to-cart-button';
 import {
     Carousel,
@@ -16,6 +16,7 @@ import {
   } from "@/components/ui/carousel"
 import { useCart } from '@/context/cart-context';
 import { useState } from 'react';
+import Link from 'next/link';
 
 type ProductViewProps = {
   product: Product;
@@ -26,14 +27,14 @@ type ProductViewProps = {
 
 export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { addToCart, cartCount } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
 
-  const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.currentPrice) * 100) : 0;
+  const discount = product.normalPrice && product.currentPrice ? Math.round(((product.normalPrice - product.currentPrice) / product.normalPrice) * 100) : 0;
 
   const handleBuyNow = () => {
     addToCart(product);
-    router.push('/checkout');
+    router.push('/cart');
   }
 
   return (
@@ -43,22 +44,23 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
         <Drawer.Content className="bg-background flex flex-col rounded-t-[10px] h-[96%] mt-24 fixed bottom-0 left-0 right-0 z-50">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-zinc-300 mb-2" />
             <div className="p-4 bg-background flex-1 overflow-y-auto">
-                <Drawer.Title className="sr-only">{product.name}</Drawer.Title>
+                
                 <div className="sticky top-0 bg-background py-2 -mt-4 z-10">
                     <div className="flex justify-between items-center">
                          <Drawer.Close asChild>
-                            <Button variant="ghost" size="icon">
-                                <ArrowLeft />
+                            <Button variant="ghost" size="icon" className="h-10 w-10">
+                                <ArrowLeft className="h-5 w-5" />
                             </Button>
                          </Drawer.Close>
-                         <div className="flex items-center gap-2">
-                             <Button variant="outline" size="icon">
-                                 <Heart className="h-5 w-5" />
-                             </Button>
-                             <Button variant="outline" size="icon">
-                                 <Share className="h-5 w-5" />
-                             </Button>
-                         </div>
+                         <h2 className="font-semibold text-lg">Detail Product</h2>
+                         <Link href="/cart" className="relative p-2">
+                            <ShoppingCart className="h-6 w-6 text-gray-800" />
+                            {cartCount > 0 && (
+                                <span className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                                {cartCount}
+                                </span>
+                            )}
+                        </Link>
                     </div>
                 </div>
 
@@ -85,52 +87,75 @@ export function ProductView({ product, isOpen, setIsOpen }: ProductViewProps) {
                 <div className="mt-6">
                     <div className="flex justify-between items-start">
                         <div>
-                             {discount > 0 && <Badge variant="destructive" className="mb-2">-{discount}% OFF</Badge>}
-                             <p className="text-sm text-muted-foreground">WinterElegance</p>
-                             <h1 className="text-2xl font-bold font-headline">{product.name}</h1>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <span className="font-bold text-gray-800">H&M</span>
+                                <span className="text-xs">•</span>
+                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                <span className="font-semibold text-gray-800">{product.rating || 4.9}</span>
+                                <span className="text-xs">({product.reviewCount || 136})</span>
+                            </div>
+                             <h1 className="text-2xl font-bold font-headline mt-1">{product.name}</h1>
                         </div>
-                        <div className="flex items-center gap-1 text-right">
-                            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                            <span className="font-bold">{product.rating || 'N/A'}</span>
-                        </div>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
+                            <Heart className="h-6 w-6" />
+                        </Button>
                     </div>
                     
                     <div className="mt-4 flex justify-between items-center">
-                         <div>
-                            <span className="text-2xl font-bold text-primary">₹{product.currentPrice.toLocaleString('en-IN')}</span>
+                         <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-gray-900">₹{product.currentPrice.toLocaleString('en-IN')}</span>
                             {product.normalPrice > product.currentPrice && (
-                                <span className="text-sm text-muted-foreground line-through ml-2">₹{product.normalPrice.toLocaleString('en-IN')}</span>
+                                <span className="text-base text-muted-foreground line-through">₹{product.normalPrice.toLocaleString('en-IN')}</span>
                             )}
                         </div>
                     </div>
 
-                    {product.sizes && product.sizes.length > 0 && (
-                        <div className="mt-6">
-                            <p className="font-semibold mb-2">Size</p>
-                            <div className="flex gap-2 flex-wrap">
-                                {product.sizes.map(size => (
-                                    <Button 
-                                        key={size} 
-                                        variant={selectedSize === size ? 'default' : 'outline'}
-                                        onClick={() => setSelectedSize(size)}
-                                    >
-                                        {size}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-
-                    <div className="mt-6">
+                    <div className="mt-4">
                          <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>
                     </div>
 
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                         <div>
+                            <p className="font-semibold mb-2">Colors</p>
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-2 border-primary ring-2 ring-primary/50">
+                                    <div className="h-6 w-6 rounded-full bg-blue-900" />
+                                </Button>
+                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-2 border-transparent">
+                                     <div className="h-6 w-6 rounded-full bg-blue-500" />
+                                </Button>
+                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-2 border-transparent">
+                                     <div className="h-6 w-6 rounded-full bg-sky-200" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        {product.sizes && product.sizes.length > 0 && (
+                            <div>
+                                <p className="font-semibold mb-2">Size</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    {product.sizes.map(size => (
+                                        <Button 
+                                            key={size} 
+                                            variant={selectedSize === size ? 'default' : 'outline'}
+                                            onClick={() => setSelectedSize(size)}
+                                            className="w-12"
+                                        >
+                                            {size}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="p-4 border-t bg-background">
                 <div className="flex gap-4">
-                    <AddToCartButton product={product} />
+                    <Button variant="outline" className="w-full" size="lg" onClick={() => addToCart(product)}>
+                        <ShoppingCart className="mr-2 h-5 w-5" />
+                        Add to Cart
+                    </Button>
                     <Button className="w-full" size="lg" onClick={handleBuyNow}>Buy Now</Button>
                 </div>
             </div>
