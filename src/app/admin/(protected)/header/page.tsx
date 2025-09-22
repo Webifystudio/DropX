@@ -40,6 +40,7 @@ export default function AdminHeaderPage() {
     resolver: zodResolver(headerSchema),
     defaultValues: {
       linkType: 'category',
+      link: '',
     },
   });
 
@@ -179,7 +180,7 @@ export default function AdminHeaderPage() {
                 name="link"
                 control={form.control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value.replace('/category/', '')}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value ? field.value.replace('/category/', '') : ''}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
