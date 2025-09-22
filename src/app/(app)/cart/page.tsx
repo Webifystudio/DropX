@@ -84,7 +84,6 @@ export default function CartPage() {
             </div>
             <div className="flex-grow">
               <Link href={`/product/${product.id}`} className="font-semibold hover:text-primary">{product.name}</Link>
-              <p className="text-sm text-muted-foreground">250gm</p>
               <p className="text-lg font-bold mt-1">₹{product.currentPrice.toLocaleString('en-IN')}</p>
             </div>
             <div className="flex items-center gap-2">
