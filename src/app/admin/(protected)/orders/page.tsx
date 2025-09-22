@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,7 +16,10 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '@/lib/types';
@@ -35,6 +39,7 @@ import { Separator } from '@/components/ui/separator';
 import { sendOrderStatusEmail } from '@/ai/flows/send-email-flow';
 import { render } from '@react-email/components';
 import { OrderStatusEmail } from '@/components/emails/order-status-email';
+import { NotifyCustomerDialog } from '@/components/admin/notify-customer-dialog';
 
 type OrderWithId = Order & { id: string };
 
@@ -62,6 +67,7 @@ export default function AdminOrdersPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
   const [emailToSend, setEmailToSend] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [profit, setProfit] = useState(0);
@@ -192,6 +198,11 @@ export default function AdminOrdersPage() {
     setIsEmailModalOpen(true);
   }
 
+  const openNotifyModal = (order: OrderWithId) => {
+    setSelectedOrder(order);
+    setIsNotifyModalOpen(true);
+  }
+
   const viewOrderDetails = (order: OrderWithId) => {
       setSelectedOrder(order);
       setIsDetailsOpen(true);
@@ -271,6 +282,22 @@ export default function AdminOrdersPage() {
                           <Mail className="mr-2 h-4 w-4" />
                           Send Status Email
                         </DropdownMenuItem>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Notify
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={() => openNotifyModal(order)}>
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    Copy Link
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openNotifyModal(order)}>
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    Launch WhatsApp
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Confirmed')}>Mark as Confirmed</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Shipped')}>Mark as Shipped</DropdownMenuItem>
@@ -374,6 +401,14 @@ export default function AdminOrdersPage() {
             </DialogFooter>
         </DialogContent>
     </Dialog>
+
+    {selectedOrder && (
+        <NotifyCustomerDialog 
+            order={selectedOrder} 
+            isOpen={isNotifyModalOpen} 
+            onOpenChange={setIsNotifyModalOpen} 
+        />
+    )}
 
     </>
   );
