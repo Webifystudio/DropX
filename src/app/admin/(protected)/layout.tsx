@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { PushSubscriptionManager } from '@/components/admin/push-subscription-manager';
+
 
 const sidebarNavItems = [
   { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
@@ -29,6 +31,14 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        console.error('Service Worker registration failed:', err);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, 'notifications'), where('read', '==', false));
@@ -78,6 +88,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="flex-shrink-0 flex flex-col items-center space-y-4 py-4">
+            <PushSubscriptionManager />
             <Avatar>
               <AvatarImage src={`https://avatar.vercel.sh/${user?.email}.png`} alt={user?.email || ''} />
               <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>

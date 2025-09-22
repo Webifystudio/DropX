@@ -24,10 +24,11 @@ import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal, History } from "lucide-react"
-import { collection, addDoc, Timestamp } from "firebase/firestore"
+import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import type { Store, ShippingAddress } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
+import { sendPushNotification } from "@/ai/flows/push-notifications-flow"
 
 
 const formSchema = z.object({
@@ -74,6 +75,22 @@ export default function CheckoutPage() {
     }
   }, [cartItems, router]);
 
+  const notifyAdmins = async (orderId: string, orderTotal: number) => {
+    const subscriptionsSnapshot = await getDocs(collection(db, "pushSubscriptions"));
+    subscriptionsSnapshot.forEach(async (doc) => {
+      const subscription = doc.data();
+      const payload = {
+        title: 'New Order Received!',
+        body: `Order #${orderId.slice(-6)} for ₹${orderTotal.toLocaleString('en-IN')} has been placed.`,
+        url: `/admin/orders`
+      };
+      try {
+        await sendPushNotification({ subscription, payload: JSON.stringify(payload) });
+      } catch (e) {
+        console.error('Error sending push notification, maybe subscription is expired', e);
+      }
+    });
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -97,6 +114,8 @@ export default function CheckoutPage() {
             read: false,
             link: `/admin/orders`,
         });
+
+        await notifyAdmins(orderDocRef.id, cartTotal);
 
         // Save address to local storage on successful order
         localStorage.setItem('savedShippingAddress', JSON.stringify(values));
