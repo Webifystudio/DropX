@@ -35,6 +35,7 @@ const creatorSchema = z.object({
   posts: z.coerce.number().min(0),
   avatar: z.any(),
   isVerified: z.boolean().default(false),
+  totalEarnings: z.coerce.number().min(0).default(0),
 });
 
 type CreatorFormValues = z.infer<typeof creatorSchema>;
@@ -60,6 +61,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
       followers: 0,
       posts: 0,
       isVerified: false,
+      totalEarnings: 0,
     },
   });
   
@@ -74,6 +76,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
         followers: creator.followers,
         posts: creator.posts,
         isVerified: creator.isVerified,
+        totalEarnings: creator.totalEarnings || 0,
       });
     } else {
         form.reset({
@@ -85,6 +88,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
           followers: 0,
           posts: 0,
           isVerified: false,
+          totalEarnings: 0,
         });
     }
   }, [creator, form, isOpen]);
@@ -129,10 +133,11 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
         posts: data.posts,
         isVerified: data.isVerified,
         avatarUrl: avatarUrl,
+        totalEarnings: data.totalEarnings,
       };
 
       if (creator) {
-        await setDoc(doc(db, 'creators', creator.id), creatorData);
+        await setDoc(doc(db, 'creators', creator.id), creatorData, { merge: true });
         toast({ title: "Creator Updated!", description: `${data.name}'s profile has been updated.` });
       } else {
         await addDoc(collection(db, 'creators'), creatorData);
@@ -201,6 +206,11 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
                     <Label htmlFor="posts">Posts</Label>
                     <Input id="posts" type="number" {...form.register("posts")} />
                 </div>
+            </div>
+            
+             <div className="space-y-2">
+                <Label htmlFor="totalEarnings">Total Earnings (₹)</Label>
+                <Input id="totalEarnings" type="number" {...form.register("totalEarnings")} />
             </div>
 
             <div className="space-y-2">

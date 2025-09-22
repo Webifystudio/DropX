@@ -90,4 +90,5 @@ export type Creator = {
     posts: number;
     avatarUrl: string;
     isVerified: boolean;
+    totalEarnings?: number;
 }
