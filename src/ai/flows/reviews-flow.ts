@@ -13,7 +13,7 @@ const SubmitReviewSchema = z.object({
   userId: z.string(),
   userName: z.string(),
   rating: z.number().min(1).max(5),
-  text: z.string().min(10, "Review must be at least 10 characters long."),
+  text: z.string().min(10, "Your review must be at least 10 characters long."),
 });
 
 // Type for review submission

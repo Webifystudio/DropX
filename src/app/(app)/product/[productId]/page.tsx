@@ -1,8 +1,7 @@
 
 import { getProductById } from '@/lib/products';
-import { ProductViewWrapper } from '@/components/products/product-view-wrapper';
+import { ProductView } from '@/components/products/product-view';
 import { notFound } from 'next/navigation';
-import { getStoreByProductId } from '@/lib/stores';
 import type { Store } from '@/lib/types';
 
 type ProductPageProps = {
@@ -27,5 +26,5 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  return <ProductViewWrapper product={product} />;
+  return <ProductView product={product} />;
 }
