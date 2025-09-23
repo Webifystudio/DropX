@@ -18,6 +18,9 @@ export default function AppLayout({
   const pathname = usePathname();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const isProductPage = pathname.startsWith('/product/');
+  const isCartPage = pathname === '/cart';
 
   useEffect(() => {
     const segments = pathname.split('/').filter(Boolean);
@@ -46,15 +49,13 @@ export default function AppLayout({
     fetchStore();
   }, [pathname]);
 
-  const showBottomNav = pathname !== '/cart';
-
   return (
     <StoreProvider store={store}>
         <div className="relative flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
-          <Footer />
-          {showBottomNav && <BottomNav />}
+          {!isProductPage && <Header />}
+          <main className={`flex-1 ${!isProductPage ? 'pb-16 md:pb-0' : ''}`}>{children}</main>
+          {!isProductPage && <Footer />}
+          {!isCartPage && !isProductPage && <BottomNav />}
         </div>
     </StoreProvider>
   );
