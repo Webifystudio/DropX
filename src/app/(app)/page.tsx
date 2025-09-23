@@ -9,6 +9,7 @@ import { categories as allCategories } from "@/lib/data";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { HeroSectionConfig, Product } from "@/lib/types";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 async function getHeroConfig(): Promise<HeroSectionConfig | null> {
   try {
@@ -102,7 +103,12 @@ export default async function Home() {
                                     <Link href={`/category/${categoryId}`}>See All</Link>
                                 </Button>
                             </div>
-                           <ProductList products={categoryData.products} />
+                           <ScrollArea>
+                                <div className="flex space-x-4 pb-4">
+                                    <ProductList products={categoryData.products} />
+                                </div>
+                                <ScrollBar orientation="horizontal" />
+                            </ScrollArea>
                         </div>
                     </section>
                 )
