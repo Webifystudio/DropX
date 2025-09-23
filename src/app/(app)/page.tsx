@@ -4,11 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Categories } from "@/components/categories/categories";
 import { getProducts } from "@/lib/products";
-import { ProductCard } from "@/components/products/product-card";
+import { ProductList } from "@/components/products/product-list";
 import { categories as allCategories } from "@/lib/data";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { HeroSectionConfig } from "@/lib/types";
+import type { HeroSectionConfig, Product } from "@/lib/types";
 
 async function getHeroConfig(): Promise<HeroSectionConfig | null> {
   try {
@@ -28,21 +28,30 @@ export default async function Home() {
   const products = await getProducts();
   const heroConfig = await getHeroConfig();
   
-  const productsByCategory: { [key: string]: any[] } = {};
-  const categoryDetails: { [key: string]: { name: string, id: string } } = {};
+  const productsByCategory: { [key: string]: { name: string; products: Product[] } } = {};
+  const subCategoryToMainCategoryMap: { [key: string]: string } = {};
 
+  // Create a map from sub-category ID to main category ID
   allCategories.forEach(mainCat => {
       mainCat.subCategories.forEach(subCat => {
-          categoryDetails[subCat.id] = { name: subCat.name, id: mainCat.id };
+          subCategoryToMainCategoryMap[subCat.id] = mainCat.id;
       });
   });
 
+  // Group products by their main category
   products.forEach(product => {
     if (product.category) {
-      if (!productsByCategory[product.category]) {
-        productsByCategory[product.category] = [];
+      const mainCategoryId = subCategoryToMainCategoryMap[product.category];
+      if (mainCategoryId) {
+        if (!productsByCategory[mainCategoryId]) {
+            const mainCategory = allCategories.find(c => c.id === mainCategoryId);
+            productsByCategory[mainCategoryId] = {
+                name: mainCategory?.name || mainCategoryId,
+                products: []
+            };
+        }
+        productsByCategory[mainCategoryId].products.push(product);
       }
-      productsByCategory[product.category].push(product);
     }
   });
 
@@ -83,22 +92,17 @@ export default async function Home() {
         <Categories />
 
         <div className="space-y-12">
-            {Object.entries(productsByCategory).map(([categoryId, products]) => {
-                const categoryInfo = categoryDetails[categoryId];
+            {Object.entries(productsByCategory).map(([categoryId, categoryData]) => {
                 return (
                     <section key={categoryId}>
                         <div className="container mx-auto px-4">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold font-headline">{categoryInfo?.name || categoryId}</h2>
+                                <h2 className="text-xl font-bold font-headline">{categoryData.name}</h2>
                                 <Button variant="link" asChild>
-                                    <Link href={`/category/${categoryInfo?.id || categoryId}`}>See All</Link>
+                                    <Link href={`/category/${categoryId}`}>See All</Link>
                                 </Button>
                             </div>
-                           <div className="grid grid-cols-2 gap-4">
-                                {products.slice(0,4).map((product) => (
-                                    <ProductCard key={product.id} product={product} />
-                                ))}
-                            </div>
+                           <ProductList products={categoryData.products} />
                         </div>
                     </section>
                 )
