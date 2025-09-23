@@ -84,6 +84,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                     {unreadCount}
                   </span>
                 )}
+                 {item.label === 'Orders' && unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-destructive border-2 border-card"></span>
+                )}
               </Link>
             )
           })}

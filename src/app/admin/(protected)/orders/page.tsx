@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User, X, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,6 +20,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order, Supplier } from '@/lib/types';
 import Image from 'next/image';
@@ -39,6 +42,9 @@ import { sendOrderStatusEmail } from '@/ai/flows/send-email-flow';
 import { render } from '@react-email/components';
 import { OrderStatusEmail } from '@/components/emails/order-status-email';
 import { NotifyCustomerDialog } from '@/components/admin/notify-customer-dialog';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+
 
 type OrderWithId = Order & { id: string };
 
@@ -60,9 +66,8 @@ function getStatusBadge(status: 'Processing' | 'Shipped' | 'Delivered' | 'Confir
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderWithId[]>([]);
-  const [suppliers, setSuppliers] = useState<Map<string, Supplier>>(new Map());
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
@@ -73,6 +78,13 @@ export default function AdminOrdersPage() {
   const [profit, setProfit] = useState(0);
   const { toast } = useToast();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [supplierFilter, setSupplierFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+  const supplierMap = useMemo(() => new Map(suppliers.map(s => [s.id, s])), [suppliers]);
+
   useEffect(() => {
     const unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
       const ordersData: OrderWithId[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderWithId));
@@ -81,11 +93,7 @@ export default function AdminOrdersPage() {
     });
 
     const unsubscribeSuppliers = onSnapshot(collection(db, 'suppliers'), (snapshot) => {
-      const suppliersData = new Map<string, Supplier>();
-      snapshot.docs.forEach(doc => {
-        suppliersData.set(doc.id, { id: doc.id, ...doc.data() } as Supplier);
-      });
-      setSuppliers(suppliersData);
+        setSuppliers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supplier)));
     });
 
     return () => {
@@ -95,14 +103,28 @@ export default function AdminOrdersPage() {
   }, []);
   
   const filteredOrders = useMemo(() => {
-    if (!searchQuery) {
-        return orders;
-    }
-    return orders.filter(order =>
-        order.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery, orders]);
+    return orders.filter(order => {
+        const orderDate = new Date(order.date.seconds * 1000);
+        
+        const searchMatch = !searchQuery || order.id.toLowerCase().includes(searchQuery.toLowerCase());
+        const statusMatch = statusFilter === 'all' || order.status === statusFilter;
+        const dateMatch = !dateRange || (
+            (!dateRange.from || orderDate >= dateRange.from) &&
+            (!dateRange.to || orderDate <= dateRange.to)
+        );
+        const supplierMatch = supplierFilter === 'all' || order.items.some(item => item.product.supplierId === supplierFilter);
+
+        return searchMatch && statusMatch && dateMatch && supplierMatch;
+    });
+  }, [searchQuery, statusFilter, dateRange, supplierFilter, orders]);
   
+  const clearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setSupplierFilter('all');
+    setDateRange(undefined);
+  }
+
   const createNotification = async (orderId: string, status: string) => {
     let title = '';
     let description = '';
@@ -223,23 +245,56 @@ export default function AdminOrdersPage() {
   return (
     <>
     <Card>
-      <CardHeader className="sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <CardTitle>Orders</CardTitle>
-            <CardDescription>Manage your customer orders.</CardDescription>
-        </div>
-        <div className="relative mt-4 sm:mt-0 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by Order ID..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-        </div>
+      <CardHeader>
+        <CardTitle>Orders</CardTitle>
+        <CardDescription>Manage your customer orders.</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Filter by Order ID..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="Processing">Processing</SelectItem>
+                    <SelectItem value="Confirmed">Confirmed</SelectItem>
+                    <SelectItem value="Shipped">Shipped</SelectItem>
+                    <SelectItem value="Delivered">Delivered</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                </SelectContent>
+            </Select>
+             <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Suppliers</SelectItem>
+                    {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant={"outline"} className="w-[280px] justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? 
+                            (dateRange.to ? `${format(dateRange.from, 'LLL dd, y')} - ${format(dateRange.to, 'LLL dd, y')}` : format(dateRange.from, 'LLL dd, y')) 
+                            : <span>Pick a date range</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                    <Calendar mode="range" selected={dateRange} onSelect={setDateRange} initialFocus />
+                </PopoverContent>
+            </Popover>
+            <Button variant="ghost" onClick={clearFilters}>
+                <X className="mr-2 h-4 w-4" />
+                Clear Filters
+            </Button>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -337,7 +392,7 @@ export default function AdminOrdersPage() {
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 {selectedOrder?.items.map(item => {
-                    const supplier = item.product.supplierId ? suppliers.get(item.product.supplierId) : null;
+                    const supplier = item.product.supplierId ? supplierMap.get(item.product.supplierId) : null;
                     return (
                         <div key={item.product.id} className="flex items-start gap-4">
                             <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
