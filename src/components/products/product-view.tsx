@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product, Review } from '@/lib/types';
 import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, MessageSquare } from 'lucide-react';
-import type { EmblaCarouselType } from 'embla-carousel-react'
+import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { useState, useEffect, useCallback } from 'react';
@@ -38,27 +38,27 @@ export function ProductView({ product }: ProductViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const [emblaRef, setEmblaRef] = useState<EmblaCarouselType | null>(null)
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [emblaRef, emblaApi] = useEmblaCarousel();
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setSelectedIndex(emblaApi.selectedScrollSnap())
-  }, [])
+  }, []);
 
   const onThumbClick = useCallback(
     (index: number) => {
-      if (!emblaRef) return
-      emblaRef.scrollTo(index)
+      if (!emblaApi) return
+      emblaApi.scrollTo(index)
     },
-    [emblaRef]
-  )
+    [emblaApi]
+  );
 
   useEffect(() => {
-    if (!emblaRef) return
-    onSelect(emblaRef)
-    emblaRef.on('select', onSelect)
-    emblaRef.on('reInit', onSelect)
-  }, [emblaRef, onSelect])
+    if (!emblaApi) return
+    onSelect(emblaApi)
+    emblaApi.on('select', onSelect)
+    emblaApi.on('reInit', onSelect)
+  }, [emblaApi, onSelect]);
 
 
   const fetchReviews = async () => {
@@ -134,10 +134,10 @@ export function ProductView({ product }: ProductViewProps) {
       <div className="flex-1 overflow-y-auto pb-24">
         
         <div className="bg-background p-4">
-            <div className="overflow-hidden" ref={setEmblaRef}>
-                <div className="flex touch-pan-y">
+            <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex touch-pan-y -ml-4">
                     {(product.images || []).map((imageUrl, index) => (
-                        <div className="relative flex-shrink-0 w-full aspect-square" key={index}>
+                        <div className="relative flex-shrink-0 w-full aspect-square pl-4" key={index}>
                             <Image
                                 src={imageUrl}
                                 alt={`${product.name} - image ${index + 1}`}
@@ -314,5 +314,7 @@ export function ProductView({ product }: ProductViewProps) {
         </div>
     </div>
   );
+
+    
 
     
