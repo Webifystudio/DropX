@@ -26,8 +26,15 @@ async function getHeroConfig(): Promise<HeroSectionConfig | null> {
 }
 
 export default async function Home() {
-  const products = await getProducts();
+  const rawProducts = await getProducts();
   const heroConfig = await getHeroConfig();
+
+  // Convert Firestore Timestamps to serializable strings
+  const products = rawProducts.map(product => ({
+    ...product,
+    createdAt: product.createdAt.toDate().toISOString(),
+    updatedAt: product.updatedAt ? product.updatedAt.toDate().toISOString() : undefined,
+  }));
   
   const productsByCategory: { [key: string]: { name: string; products: Product[] } } = {};
   const subCategoryToMainCategoryMap: { [key: string]: string } = {};
