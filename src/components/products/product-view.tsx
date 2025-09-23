@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product, Review } from '@/lib/types';
-import { ArrowLeft, Heart, Share, Star, ShoppingCart } from 'lucide-react';
-import { AddToCartButton } from './add-to-cart-button';
+import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, MessageSquare } from 'lucide-react';
 import {
     Carousel,
     CarouselContent,
@@ -56,11 +55,6 @@ export function ProductView({ product }: ProductViewProps) {
       addToCart(product, 1, selectedColor, selectedSize);
   }
 
-  const handleBuyNow = () => {
-    addToCart(product, 1, selectedColor, selectedSize);
-    router.push('/cart');
-  }
-
   const handleReviewSubmit = async () => {
     if (!user) {
         toast({ title: "Authentication required", description: "You must be logged in to submit a review.", variant: "destructive" });
@@ -88,7 +82,6 @@ export function ProductView({ product }: ProductViewProps) {
         setReviewText('');
         setRating(0);
         fetchReviews(); // Refresh reviews
-        // We might also want to trigger a re-fetch of the product data itself if the average rating is now displayed on the page.
     } catch (error) {
         console.error("Error submitting review: ", error);
         if (error instanceof Error) {
@@ -103,30 +96,24 @@ export function ProductView({ product }: ProductViewProps) {
 
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b">
+    <div className="flex flex-col h-screen bg-muted/30">
+      <div className="sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
         <div className="container mx-auto px-4">
             <div className="flex justify-between items-center py-3">
-                    <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => router.back()}>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h2 className="font-semibold text-lg">Detail Product</h2>
-                    <Link href="/cart" className="relative p-2">
-                    <ShoppingCart className="h-6 w-6 text-gray-800" />
-                    {cartCount > 0 && (
-                        <span className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                        {cartCount}
-                        </span>
-                    )}
-                </Link>
+                    <h2 className="font-semibold text-lg">Product Details</h2>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
+                        <Share className="h-5 w-5" />
+                    </Button>
             </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4">
+      <div className="flex-1 overflow-y-auto pb-24">
         
-        <div className="pt-4">
-            <Carousel className="w-full max-w-lg mx-auto">
+        <div className="bg-background">
+            <Carousel className="w-full">
                 <CarouselContent>
                     {(product.images || []).map((imageUrl, index) => (
                         <CarouselItem key={index}>
@@ -145,56 +132,23 @@ export function ProductView({ product }: ProductViewProps) {
             </Carousel>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4 bg-background p-4 rounded-t-2xl">
             <div className="flex justify-between items-start">
                 <div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <span className="font-bold text-gray-800">H&M</span>
+                    <h1 className="text-2xl font-bold font-headline">{product.name}</h1>
+                     <div className="mt-2 text-sm text-muted-foreground flex items-center">
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
+                        <span className="font-semibold text-gray-800 mr-1">{product.rating?.toFixed(1) || 'N/A'}</span>
+                        <span>({product.reviewCount || 0} reviews)</span>
                     </div>
-                        <h1 className="text-2xl font-bold font-headline mt-1">{product.name}</h1>
                 </div>
-                <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
+                <Button variant="ghost" size="icon" className="h-12 w-12 flex-shrink-0 text-muted-foreground">
                     <Heart className="h-6 w-6" />
                 </Button>
             </div>
-            
-            <div className="mt-4 flex justify-between items-center">
-                    <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-gray-900">₹{product.currentPrice.toLocaleString('en-IN')}</span>
-                    {product.normalPrice > product.currentPrice && (
-                        <span className="text-base text-muted-foreground line-through">₹{product.normalPrice.toLocaleString('en-IN')}</span>
-                    )}
-                </div>
-            </div>
-             <div className="mt-4 text-sm text-muted-foreground flex items-center">
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
-                <span className="font-semibold text-gray-800 mr-1">{product.rating?.toFixed(1) || 'N/A'}</span>
-                <span>({product.reviewCount || 0} reviews)</span>
-            </div>
-
-            <div className="mt-4">
-                    <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>
-            </div>
-
-            {product.colors && product.colors.length > 0 && (
-                <div className="mt-6">
-                    <p className="font-semibold mb-2">Color: <span className="font-normal">{selectedColor?.name}</span></p>
-                    <div className="flex gap-3 flex-wrap">
-                        {product.colors.map(color => (
-                            <button
-                                key={color.name} 
-                                onClick={() => setSelectedColor(color)}
-                                className={`h-8 w-8 rounded-full border-2 transition-all ${selectedColor?.code === color.code ? 'border-primary scale-110' : 'border-transparent'}`}
-                            >
-                               <div className="h-full w-full rounded-full border border-stone-200" style={{ backgroundColor: color.code }}></div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {product.sizes && product.sizes.length > 0 && (
-                <div className="mt-6">
+                <div className="mt-4">
                     <p className="font-semibold mb-2">Size</p>
                     <div className="flex gap-2 flex-wrap">
                         {product.sizes.map(size => (
@@ -202,7 +156,7 @@ export function ProductView({ product }: ProductViewProps) {
                                 key={size} 
                                 variant={selectedSize === size ? 'default' : 'outline'}
                                 onClick={() => setSelectedSize(size)}
-                                className="w-12"
+                                className="w-16 h-12 text-base"
                             >
                                 {size}
                             </Button>
@@ -210,70 +164,112 @@ export function ProductView({ product }: ProductViewProps) {
                     </div>
                 </div>
             )}
-                <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Ratings & Reviews</h3>
-                <div className="space-y-4">
-                    {loadingReviews ? (
-                        <p>Loading reviews...</p>
-                    ) : reviews.length > 0 ? (
-                        reviews.map(review => (
-                            <div key={review.id} className="flex gap-3">
-                                <div className="flex-shrink-0 text-yellow-400">
-                                    {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 inline ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />)}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium">{review.text}</p>
-                                    <p className="text-xs text-muted-foreground">by {review.userName} - {new Date(review.date.seconds * 1000).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                    <p className="text-sm text-muted-foreground">No reviews yet.</p>
-                    )}
-                </div>
-
-                {user ? (
-                    <div className="mt-4">
-                        <h4 className="font-semibold mb-2">Write a review</h4>
-                        <div className="flex items-center gap-1 mb-2" onMouseLeave={() => setHoverRating(0)}>
-                            {[...Array(5)].map((_, i) => {
-                                const starValue = i + 1;
-                                return (
-                                    <Star 
-                                        key={i} 
-                                        className={`h-6 w-6 cursor-pointer ${starValue <= (hoverRating || rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                                        onClick={() => setRating(starValue)}
-                                        onMouseEnter={() => setHoverRating(starValue)}
-                                    />
-                                )
-                            })}
-                        </div>
-                        <Textarea 
-                            placeholder="Share your thoughts..." 
-                            value={reviewText}
-                            onChange={(e) => setReviewText(e.target.value)}
-                        />
-                        <Button className="mt-2" onClick={handleReviewSubmit} disabled={isSubmitting}>
-                            {isSubmitting ? 'Submitting...' : 'Submit Review'}
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="mt-4 text-center text-sm text-muted-foreground p-4 border rounded-md">
-                        <p>You must be logged in to write a review.</p>
-                        <Button variant="link" asChild><Link href="/account">Login or Sign Up</Link></Button>
-                    </div>
-                )}
-            </div>
         </div>
-      </div>
-      </div>
-        <div className="p-4 border-t bg-background sticky bottom-0">
-            <div className="flex gap-4">
-                <Button variant="outline" className="w-full" size="lg" onClick={handleAddToCart}>
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Add to Cart
+        
+         <div className="mt-4 bg-background p-4">
+             <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-3 rounded-full">
+                        <Truck className="h-5 w-5 text-primary"/>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-sm">Free Shipping</p>
+                        <p className="text-xs text-muted-foreground">On all orders</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-3 rounded-full">
+                        <Store className="h-5 w-5 text-primary"/>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-sm">Official Store</p>
+                        <p className="text-xs text-muted-foreground">100% Original</p>
+                    </div>
+                </div>
+            </div>
+         </div>
+
+
+        <div className="mt-4 bg-background p-4">
+            <h3 className="text-lg font-semibold mb-2">Description</h3>
+            <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>
+        </div>
+
+        <div className="mt-4 bg-background p-4">
+        <h3 className="text-lg font-semibold mb-4">Ratings & Reviews</h3>
+        <div className="space-y-6">
+            {loadingReviews ? (
+                <p>Loading reviews...</p>
+            ) : reviews.length > 0 ? (
+                reviews.map(review => (
+                    <div key={review.id} className="flex gap-4">
+                        <div className="flex-shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-bold">
+                                {review.userName.charAt(0)}
+                            </div>
+                        </div>
+                        <div className="flex-grow">
+                             <div className="flex justify-between items-center">
+                                <p className="font-semibold">{review.userName}</p>
+                                <p className="text-xs text-muted-foreground">{new Date(review.date.seconds * 1000).toLocaleDateString()}</p>
+                             </div>
+                             <div className="flex items-center gap-1 mt-1">
+                                {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />)}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                        </div>
+                    </div>
+                ))
+            ) : (
+            <p className="text-sm text-muted-foreground py-4 text-center">Be the first to review this product!</p>
+            )}
+        </div>
+
+        {user ? (
+            <div className="mt-6 border-t pt-6">
+                <h4 className="font-semibold mb-2">Write a review</h4>
+                <div className="flex items-center gap-1 mb-2" onMouseLeave={() => setHoverRating(0)}>
+                    {[...Array(5)].map((_, i) => {
+                        const starValue = i + 1;
+                        return (
+                            <Star 
+                                key={i} 
+                                className={`h-7 w-7 cursor-pointer ${starValue <= (hoverRating || rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                                onClick={() => setRating(starValue)}
+                                onMouseEnter={() => setHoverRating(starValue)}
+                            />
+                        )
+                    })}
+                </div>
+                <Textarea 
+                    placeholder="What did you like or dislike?" 
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    className="mt-2"
+                />
+                <Button className="mt-3 w-full" onClick={handleReviewSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
                 </Button>
-                <Button className="w-full" size="lg" onClick={handleBuyNow}>Buy Now</Button>
+            </div>
+        ) : (
+            <div className="mt-6 text-center text-sm text-muted-foreground p-4 border-t">
+                <p>You must be logged in to write a review.</p>
+                <Button variant="link" asChild><Link href="/account">Login or Sign Up</Link></Button>
+            </div>
+        )}
+    </div>
+      </div>
+      
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-sm text-muted-foreground">Total Price</p>
+                    <p className="text-2xl font-bold">₹{product.currentPrice.toLocaleString('en-IN')}</p>
+                </div>
+                <Button size="lg" className="w-1/2 h-14 rounded-full text-lg" onClick={handleAddToCart}>
+                    <ShoppingBag className="mr-2 h-6 w-6" />
+                    Add to Bag
+                </Button>
             </div>
         </div>
     </div>
