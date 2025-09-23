@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User, X, Calendar as CalendarIcon } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User, X, Calendar as CalendarIcon, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -44,6 +44,7 @@ import { OrderStatusEmail } from '@/components/emails/order-status-email';
 import { NotifyCustomerDialog } from '@/components/admin/notify-customer-dialog';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
+import { cancelOrder } from '@/ai/flows/orders-flow';
 
 
 type OrderWithId = Order & { id: string };
@@ -59,7 +60,7 @@ function getStatusBadge(status: 'Processing' | 'Shipped' | 'Delivered' | 'Confir
         case 'Delivered':
             return <Badge className="bg-green-500 hover:bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />{status}</Badge>;
         case 'Cancelled':
-            return <Badge variant="destructive">{status}</Badge>;
+            return <Badge variant="destructive"><Ban className="h-3 w-3 mr-1" />{status}</Badge>;
     }
 }
 
@@ -168,6 +169,9 @@ export default function AdminOrdersPage() {
                 setSelectedOrder({ id: orderId, ...orderDoc.data() } as OrderWithId);
                 setIsProfitModalOpen(true);
             }
+        } else if (status === 'Cancelled') {
+            await cancelOrder(orderId);
+            toast({ title: "Order Cancelled", description: `Order #${orderId.slice(-6)} has been cancelled.` });
         } else {
             await updateDoc(orderRef, { status });
             await createNotification(orderId, status);
@@ -370,7 +374,10 @@ export default function AdminOrdersPage() {
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Shipped')}>Mark as Shipped</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Delivered')}>Mark as Delivered</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => updateOrderStatus(order.id, 'Cancelled')}>Cancel Order</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
+                            <Ban className="mr-2 h-4 w-4" />
+                            Cancel Order
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
