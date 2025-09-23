@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product, Review } from '@/lib/types';
-import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, MessageSquare, Check } from 'lucide-react';
 import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
@@ -38,7 +38,7 @@ export function ProductView({ product }: ProductViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const [emblaRef, emblaApi] = useEmblaCarousel();
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
@@ -134,10 +134,10 @@ export function ProductView({ product }: ProductViewProps) {
       <div className="flex-1 overflow-y-auto pb-24">
         
         <div className="bg-background p-4">
-            <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex touch-pan-y -ml-4">
+            <div className="overflow-hidden rounded-lg" ref={emblaRef}>
+                <div className="flex touch-pan-y">
                     {(product.images || []).map((imageUrl, index) => (
-                        <div className="relative flex-shrink-0 w-full aspect-square pl-4" key={index}>
+                        <div className="relative flex-[0_0_100%] aspect-square" key={index}>
                             <Image
                                 src={imageUrl}
                                 alt={`${product.name} - image ${index + 1}`}
@@ -187,23 +187,45 @@ export function ProductView({ product }: ProductViewProps) {
                 </Button>
             </div>
 
-            {product.sizes && product.sizes.length > 0 && (
-                <div className="mt-4">
-                    <p className="font-semibold mb-2">Size</p>
-                    <div className="flex gap-2 flex-wrap">
-                        {product.sizes.map(size => (
-                            <Button 
-                                key={size} 
-                                variant={selectedSize === size ? 'default' : 'outline'}
-                                onClick={() => setSelectedSize(size)}
-                                className="w-16 h-12 text-base"
-                            >
-                                {size}
-                            </Button>
-                        ))}
+            <div className="mt-6 flex gap-8">
+                 {product.colors && product.colors.length > 0 && (
+                    <div>
+                        <p className="font-semibold mb-2 text-sm">Color</p>
+                        <div className="flex gap-2 flex-wrap">
+                            {product.colors.map(color => (
+                                <button
+                                    key={color.code} 
+                                    onClick={() => setSelectedColor(color)}
+                                    className={cn("h-8 w-8 rounded-full border-2 transition-all flex items-center justify-center",
+                                      selectedColor?.code === color.code ? 'border-primary' : 'border-transparent'
+                                    )}
+                                >
+                                    <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: color.code }}>
+                                       {selectedColor?.code === color.code && <Check className="h-4 w-4 text-white mix-blend-difference" />}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+                {product.sizes && product.sizes.length > 0 && (
+                    <div>
+                        <p className="font-semibold mb-2 text-sm">Size</p>
+                        <div className="flex gap-2 flex-wrap">
+                            {product.sizes.map(size => (
+                                <Button 
+                                    key={size} 
+                                    variant={selectedSize === size ? 'default' : 'outline'}
+                                    onClick={() => setSelectedSize(size)}
+                                    className="px-4 py-2 h-auto"
+                                >
+                                    {size}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
         
          <div className="mt-4 bg-background p-4">
@@ -315,6 +337,5 @@ export function ProductView({ product }: ProductViewProps) {
     </div>
   );
 
-    
+}
 
-    
