@@ -140,8 +140,8 @@ export default function CheckoutPage() {
             items: serializableCartItems,
             shippingAddress: values,
             customerEmail: user.email,
-            resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,
-            resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID,
+            resellerName: store?.id || process.env.NEXT_PUBLIC_SITE_NAME || "DropX",
+            resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID || "default",
             resellerEmail: store?.creatorEmail || 'akirastreamingzone@gmail.com'
         };
 
@@ -297,7 +297,7 @@ export default function CheckoutPage() {
                         Please double-check your address. We are not responsible for orders shipped to an incorrect address.
                       </AlertDescription>
                     </Alert>
-                  <Button type="submit" size="lg" className="w-full" disabled={isPlacingOrder}>
+                  <Button type="submit" size="lg" className="w-full active:scale-95" disabled={isPlacingOrder}>
                     {isPlacingOrder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
                   </Button>
@@ -347,3 +347,5 @@ export default function CheckoutPage() {
     </div>
   )
 }
+
+    
