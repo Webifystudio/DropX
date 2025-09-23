@@ -7,14 +7,6 @@ import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from "fireb
 import { db } from "@/lib/firebase";
 import * as webpush from 'web-push';
 
-if (process.env.VAPID_PRIVATE_KEY && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-    webpush.setVapidDetails(
-        'mailto:support@dropx.in',
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-        process.env.VAPID_PRIVATE_KEY
-    );
-}
-
 
 // Schema for saving a subscription
 const PushSubscriptionSchema = z.object({
@@ -95,7 +87,17 @@ const sendPushNotificationFlow = ai.defineFlow(
     outputSchema: z.any(),
   },
   async ({ subscription, payload }) => {
+    if (!process.env.VAPID_PRIVATE_KEY || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+        console.error("VAPID keys not set, skipping push notification.");
+        return;
+    }
+
     try {
+        webpush.setVapidDetails(
+            'mailto:support@dropx.in',
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+            process.env.VAPID_PRIVATE_KEY
+        );
         const result = await webpush.sendNotification(subscription, payload);
         return result;
     } catch(e) {
