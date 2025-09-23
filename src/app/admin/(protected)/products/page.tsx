@@ -3,7 +3,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, QueryDocumentSnapshot, DocumentData, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 type ProductData = {
   id: string;
@@ -31,6 +32,7 @@ type ProductData = {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -44,6 +46,25 @@ export default function AdminProductsPage() {
 
     return () => unsubscribe();
   }, []);
+
+  const deleteProduct = async (productId: string, productName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+      try {
+        await deleteDoc(doc(db, 'products', productId));
+        toast({
+          title: 'Product Deleted',
+          description: `"${productName}" has been successfully deleted.`,
+        });
+      } catch (error) {
+        console.error("Error deleting product: ", error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete product.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
 
   return (
     <Card>
@@ -115,7 +136,12 @@ export default function AdminProductsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => deleteProduct(product.id, product.name)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -128,4 +154,3 @@ export default function AdminProductsPage() {
     </Card>
   );
 }
-
