@@ -33,8 +33,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
           <div className="pt-3 flex-grow flex flex-col">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span className="font-bold text-gray-800">H&M</span>
-                <span>•</span>
                 <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                 <span className="font-semibold text-gray-800">{product.rating?.toFixed(1) || 'N/A'}</span>
                 <span>({product.reviewCount || 0})</span>

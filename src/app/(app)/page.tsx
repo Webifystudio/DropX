@@ -12,6 +12,8 @@ import type { HeroSectionConfig, Product } from "@/lib/types";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Poppins } from "next/font/google";
 
+export const revalidate = 0;
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
