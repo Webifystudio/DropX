@@ -87,9 +87,9 @@ export default async function Home() {
               ) : (
                 <>
                   <h2 className="text-xl font-bold text-white">NEW COLLECTIONS</h2>
-                  <p className="text-4xl font-extrabold text-white">20% <span className="text-2xl font-bold">OFF</span></p>
+                  <p className="text-4xl font-extrabold text-white">START SHOPPING</p>
                    <Button asChild className="mt-2 w-fit bg-gray-900 text-white hover:bg-gray-800 px-4 py-2 h-auto text-sm">
-                    <Link href="/categories">Shop Now</Link>
+                    <Link href="https://dropxindia.vercel.app">SHOP NOW</Link>
                   </Button>
                 </>
               )}
