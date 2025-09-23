@@ -150,10 +150,6 @@ export function ProductView({ product }: ProductViewProps) {
                 <div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <span className="font-bold text-gray-800">H&M</span>
-                        <span className="text-xs">•</span>
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="font-semibold text-gray-800">{product.rating?.toFixed(1) || 'N/A'}</span>
-                        <span className="text-xs">({product.reviewCount || 0} reviews)</span>
                     </div>
                         <h1 className="text-2xl font-bold font-headline mt-1">{product.name}</h1>
                 </div>
@@ -169,6 +165,11 @@ export function ProductView({ product }: ProductViewProps) {
                         <span className="text-base text-muted-foreground line-through">₹{product.normalPrice.toLocaleString('en-IN')}</span>
                     )}
                 </div>
+            </div>
+             <div className="mt-4 text-sm text-muted-foreground flex items-center">
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
+                <span className="font-semibold text-gray-800 mr-1">{product.rating?.toFixed(1) || 'N/A'}</span>
+                <span>({product.reviewCount || 0} reviews)</span>
             </div>
 
             <div className="mt-4">
