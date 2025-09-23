@@ -7,18 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Product, Review } from '@/lib/types';
 import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, MessageSquare } from 'lucide-react';
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-  } from "@/components/ui/carousel"
+import type { EmblaCarouselType } from 'embla-carousel-react'
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Textarea } from '../ui/textarea';
 import { getReviews, submitReview as submitReviewFlow } from '@/ai/flows/reviews-flow';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
 
 type ProductViewProps = {
   product: Product;
@@ -39,6 +37,29 @@ export function ProductView({ product }: ProductViewProps) {
   const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  const [emblaRef, setEmblaRef] = useState<EmblaCarouselType | null>(null)
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
+    setSelectedIndex(emblaApi.selectedScrollSnap())
+  }, [])
+
+  const onThumbClick = useCallback(
+    (index: number) => {
+      if (!emblaRef) return
+      emblaRef.scrollTo(index)
+    },
+    [emblaRef]
+  )
+
+  useEffect(() => {
+    if (!emblaRef) return
+    onSelect(emblaRef)
+    emblaRef.on('select', onSelect)
+    emblaRef.on('reInit', onSelect)
+  }, [emblaRef, onSelect])
+
 
   const fetchReviews = async () => {
     setLoadingReviews(true);
@@ -112,12 +133,11 @@ export function ProductView({ product }: ProductViewProps) {
       </div>
       <div className="flex-1 overflow-y-auto pb-24">
         
-        <div className="bg-background">
-            <Carousel className="w-full">
-                <CarouselContent>
+        <div className="bg-background p-4">
+            <div className="overflow-hidden" ref={setEmblaRef}>
+                <div className="flex touch-pan-y">
                     {(product.images || []).map((imageUrl, index) => (
-                        <CarouselItem key={index}>
-                            <div className="p-0 flex aspect-square items-center justify-center relative">
+                        <div className="relative flex-shrink-0 w-full aspect-square" key={index}>
                             <Image
                                 src={imageUrl}
                                 alt={`${product.name} - image ${index + 1}`}
@@ -125,12 +145,32 @@ export function ProductView({ product }: ProductViewProps) {
                                 className="object-contain"
                                 data-ai-hint="product photo"
                             />
-                            </div>
-                        </CarouselItem>
-                        ))}
-                </CarouselContent>
-            </Carousel>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-5 gap-2">
+                {(product.images || []).map((imageUrl, index) => (
+                    <button key={index} onClick={() => onThumbClick(index)} className="aspect-square relative">
+                        <Image
+                            src={imageUrl}
+                            alt={`Thumbnail ${index + 1}`}
+                            fill
+                            className={cn(
+                                "object-cover rounded-md transition-opacity",
+                                index === selectedIndex ? "opacity-100" : "opacity-50"
+                            )}
+                        />
+                         <div className={cn(
+                             "absolute inset-0 rounded-md border-2 transition-all",
+                             index === selectedIndex ? "border-primary" : "border-transparent"
+                         )}></div>
+                    </button>
+                ))}
+            </div>
         </div>
+
 
         <div className="mt-4 bg-background p-4 rounded-t-2xl">
             <div className="flex justify-between items-start">
@@ -274,4 +314,5 @@ export function ProductView({ product }: ProductViewProps) {
         </div>
     </div>
   );
-}
+
+    
