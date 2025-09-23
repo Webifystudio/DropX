@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Terminal, History } from "lucide-react"
+import { Terminal, History, Loader2 } from "lucide-react"
 import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import type { Store, ShippingAddress, Order, CartItem } from "@/lib/types"
@@ -50,6 +50,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [store, setStore] = useState<Store | null>(null);
   const [savedAddress, setSavedAddress] = useState<ShippingAddress | null>(null);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   useEffect(() => {
     const savedStore = localStorage.getItem('currentStore');
@@ -120,6 +121,8 @@ export default function CheckoutPage() {
         });
         return;
     }
+    
+    setIsPlacingOrder(true);
 
     try {
         const serializableCartItems = cartItems.map(item => {
@@ -180,6 +183,8 @@ export default function CheckoutPage() {
             description: "There was an error placing your order. Please try again.",
             variant: "destructive",
         });
+    } finally {
+        setIsPlacingOrder(false);
     }
   }
   
@@ -292,7 +297,10 @@ export default function CheckoutPage() {
                         Please double-check your address. We are not responsible for orders shipped to an incorrect address.
                       </AlertDescription>
                     </Alert>
-                  <Button type="submit" size="lg" className="w-full">Place Order</Button>
+                  <Button type="submit" size="lg" className="w-full" disabled={isPlacingOrder}>
+                    {isPlacingOrder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+                  </Button>
                 </form>
               </Form>
             </CardContent>
