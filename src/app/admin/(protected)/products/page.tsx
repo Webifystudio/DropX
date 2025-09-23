@@ -19,27 +19,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-
-type ProductData = {
-  id: string;
-  name: string;
-  category: string;
-  currentPrice: number;
-  normalPrice: number;
-  isFreeShipping: boolean;
-};
+import { AddProductDialog } from '@/components/admin/add-product-dialog';
+import type { Product } from '@/lib/types';
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<ProductData[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
-      const productsData: ProductData[] = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
+      const productsData: Product[] = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
         id: doc.id,
         ...doc.data(),
-      } as ProductData));
+      } as Product));
       setProducts(productsData);
       setLoading(false);
     });
@@ -66,7 +61,13 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setIsEditDialogOpen(true);
+  }
+
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Products</CardTitle>
@@ -112,8 +113,11 @@ export default function AdminProductsPage() {
               products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="hidden sm:table-cell">
-                     {/* In a real app, you'd show the first image here */}
-                     <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center text-muted-foreground text-xs">IMG</div>
+                     <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                        {product.images && product.images.length > 0 ? (
+                           <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover rounded-md" />
+                        ) : 'IMG'}
+                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                    <TableCell>
@@ -135,7 +139,7 @@ export default function AdminProductsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(product)}>Edit</DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => deleteProduct(product.id, product.name)}
@@ -152,5 +156,16 @@ export default function AdminProductsPage() {
         </Table>
       </CardContent>
     </Card>
+
+    {isEditDialogOpen && (
+        <AddProductDialog
+            product={editingProduct}
+            onOpenChange={setIsEditDialogOpen}
+        >
+            {/* This is a dummy trigger, the dialog is controlled by state */}
+            <span />
+        </AddProductDialog>
+    )}
+    </>
   );
 }

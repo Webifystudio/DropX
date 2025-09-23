@@ -1,4 +1,5 @@
 
+
 import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from './types';
@@ -13,16 +14,7 @@ export async function getProducts(): Promise<Product[]> {
       const data = doc.data();
       return {
         id: doc.id,
-        name: data.name,
-        description: data.description,
-        currentPrice: data.currentPrice,
-        normalPrice: data.normalPrice,
-        images: data.images || [],
-        category: data.category,
-        sizes: data.sizes || [],
-        colors: data.colors || [],
-        supplierId: data.supplierId,
-        createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+        ...data
       } as Product;
     });
 
@@ -42,16 +34,7 @@ export async function getProductById(productId: string): Promise<Product | undef
       const data = docSnap.data();
       return {
         id: docSnap.id,
-        name: data.name,
-        description: data.description,
-        currentPrice: data.currentPrice,
-        normalPrice: data.normalPrice,
-        images: data.images || [],
-        category: data.category,
-        sizes: data.sizes || [],
-        colors: data.colors || [],
-        supplierId: data.supplierId,
-        createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+        ...data
       } as Product;
     } else {
       console.log("No such document!");

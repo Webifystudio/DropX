@@ -21,12 +21,12 @@ import { useForm, Controller, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { collection, addDoc, Timestamp, onSnapshot } from "firebase/firestore"
+import { collection, addDoc, doc, setDoc, Timestamp, onSnapshot } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
 import { Plus, Trash } from "lucide-react"
 import Image from "next/image"
-import type { Supplier } from "@/lib/types"
+import type { Supplier, Product } from "@/lib/types"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -51,12 +51,19 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>
 
-export function AddProductDialog({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false)
+type AddProductDialogProps = {
+  product?: Product;
+  children: React.ReactNode;
+  onOpenChange?: (open: boolean) => void;
+};
+
+export function AddProductDialog({ product, children, onOpenChange }: AddProductDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const { toast } = useToast()
+  const isEditMode = !!product;
   
   useEffect(() => {
     if (isOpen) {
@@ -77,12 +84,36 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-        isFreeShipping: true,
-        sizes: [{ value: 'M' }],
-        colors: [{ name: 'Default', code: '#000000' }]
+  });
+
+  useEffect(() => {
+    if (isOpen && product) {
+        reset({
+            ...product,
+            sizes: product.sizes?.map(s => ({ value: s })) || [],
+            colors: product.colors || [],
+        });
+        if (product.images) {
+            setImagePreviews(product.images);
+        }
+    } else {
+        reset({
+            name: '',
+            description: '',
+            normalPrice: 0,
+            currentPrice: 0,
+            category: '',
+            supplierId: '',
+            isFreeShipping: true,
+            shippingCharge: 0,
+            sizes: [{ value: 'M' }],
+            colors: [{ name: 'Default', code: '#000000' }],
+            images: null
+        });
+        setImagePreviews([]);
     }
-  })
+  }, [isOpen, product, reset]);
+
 
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
     control,
@@ -95,26 +126,33 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
   });
 
   const isFreeShipping = watch("isFreeShipping")
-  const imageFiles = watch("images");
+  const watchImages = watch("images");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
         const previews = Array.from(files).map(file => URL.createObjectURL(file));
         setImagePreviews(previews);
-    } else {
-        setImagePreviews([]);
     }
   }
+  
+  useEffect(() => {
+    // This effect is needed if images are cleared programmatically (e.g. on reset)
+    // and we need to clear previews. For file inputs, direct manipulation is tricky.
+    // The main logic is now in handleImageChange and the initial useEffect.
+  }, [watchImages]);
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     const imgbbApiKey = "81b665cd5c10e982384fcdec4b410fba";
-    let imageUrls: string[] = [];
+    let imageUrls: string[] = product?.images || [];
 
     try {
       if (data.images && data.images.length > 0) {
         const uploadPromises = Array.from(data.images).map(async (file: any) => {
+          // If the file is a string, it's an existing URL, so just return it
+          if (typeof file === 'string') return file;
+
           const formData = new FormData();
           formData.append("image", file);
 
@@ -130,8 +168,9 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
             throw new Error(`Image upload failed: ${result.error.message}`);
           }
         });
-
-        imageUrls = await Promise.all(uploadPromises);
+        // Filter out old URLs that are no longer in previews if new images were added
+        const newImageUrls = await Promise.all(uploadPromises);
+        imageUrls = isEditMode && imagePreviews.every(p => p.startsWith('http')) ? [...imageUrls, ...newImageUrls] : newImageUrls;
       }
       
       const productData = {
@@ -146,44 +185,53 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
-        createdAt: Timestamp.now(),
+        createdAt: isEditMode ? product.createdAt : Timestamp.now(),
+        updatedAt: Timestamp.now(),
       };
 
-      await addDoc(collection(db, "products"), productData);
+      if (isEditMode) {
+        const productRef = doc(db, 'products', product.id);
+        await setDoc(productRef, productData);
+        toast({
+            title: "Product Updated!",
+            description: `${data.name} has been successfully updated.`,
+        });
+      } else {
+        await addDoc(collection(db, "products"), productData);
+        toast({
+            title: "Product Added!",
+            description: `${data.name} has been successfully added.`,
+        });
+      }
 
-      toast({
-        title: "Product Added!",
-        description: `${data.name} has been successfully added.`,
-      })
-      reset()
-      setImagePreviews([]);
       setIsOpen(false)
     } catch (error) {
-      console.error("Error adding product: ", error)
+      console.error("Error saving product: ", error)
       toast({
         title: "Error",
-        description: "Failed to add product. Please try again.",
+        description: "Failed to save product. Please try again.",
         variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
     }
   }
+  
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (onOpenChange) {
+      onOpenChange(open);
+    }
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-        setIsOpen(open);
-        if (!open) {
-            reset();
-            setImagePreviews([]);
-        }
-    }}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Product' : 'Add New Product'}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new product to your store.
+            Fill in the details below to {isEditMode ? 'update the' : 'add a new'} product.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
@@ -219,7 +267,7 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
                         name="category"
                         control={control}
                         render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                             <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
@@ -246,7 +294,7 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
                         name="supplierId"
                         control={control}
                         render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a supplier" />
                             </SelectTrigger>
@@ -361,7 +409,7 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
             <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Adding..." : "Add Product"}
+                    {isSubmitting ? "Saving..." : isEditMode ? "Save Changes" : "Add Product"}
                 </Button>
             </DialogFooter>
         </form>

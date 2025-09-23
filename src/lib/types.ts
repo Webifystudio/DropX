@@ -13,7 +13,8 @@ export type Product = {
   supplierId?: string;
   rating?: number;
   reviewCount?: number;
-  createdAt: string;
+  createdAt: any; // Can be Timestamp or string
+  updatedAt?: any;
 };
 
 export type Supplier = {

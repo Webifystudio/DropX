@@ -107,6 +107,12 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
               className="pl-10 pr-10 w-full"
             />
           </div>
+           <AddProductDialog>
+                <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Product
+                </Button>
+            </AddProductDialog>
         </header>
 
         <main className="flex-1 p-6">
@@ -114,11 +120,6 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <AddProductDialog>
-        <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg">
-            <Plus className="h-8 w-8" />
-        </Button>
-      </AddProductDialog>
     </div>
   );
 }
