@@ -1,4 +1,3 @@
-
 import { getProductById } from '@/lib/products';
 import { ProductView } from '@/components/products/product-view';
 import { notFound } from 'next/navigation';

@@ -27,7 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal, History } from "lucide-react"
 import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import type { Store, ShippingAddress, Order } from "@/lib/types"
+import type { Store, ShippingAddress, Order, CartItem } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 import { sendPushNotification } from "@/ai/flows/push-notifications-flow"
 import { sendOrderStatusEmail } from "@/ai/flows/send-email-flow"
@@ -122,11 +122,19 @@ export default function CheckoutPage() {
     }
 
     try {
+        const serializableCartItems = cartItems.map(item => {
+            const { createdAt, updatedAt, ...restOfProduct } = item.product;
+            return {
+                ...item,
+                product: restOfProduct,
+            };
+        });
+
         const orderData = {
             date: Timestamp.now(),
             total: cartTotal,
             status: "Processing" as const,
-            items: cartItems,
+            items: serializableCartItems,
             shippingAddress: values,
             customerEmail: user.email,
             resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_NAME,

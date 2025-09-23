@@ -1,13 +1,14 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User, X, Calendar as CalendarIcon, Ban } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User, X, Calendar as CalendarIcon, Ban, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -158,6 +159,24 @@ export default function AdminOrdersPage() {
         read: false,
         link: `/admin/orders`,
     });
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    if (window.confirm('Are you sure you want to permanently delete this order? This action cannot be undone.')) {
+        try {
+            await deleteDoc(doc(db, 'orders', orderId));
+            toast({
+                title: 'Order Deleted',
+                description: `Order #${orderId.slice(-6)} has been deleted.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to delete the order.',
+                variant: 'destructive',
+            });
+        }
+    }
   };
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
@@ -377,6 +396,10 @@ export default function AdminOrdersPage() {
                         <DropdownMenuItem className="text-destructive" onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
                             <Ban className="mr-2 h-4 w-4" />
                             Cancel Order
+                        </DropdownMenuItem>
+                         <DropdownMenuItem className="text-destructive" onClick={() => deleteOrder(order.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Order
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

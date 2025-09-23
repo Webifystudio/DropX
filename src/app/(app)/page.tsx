@@ -10,6 +10,12 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { HeroSectionConfig, Product } from "@/lib/types";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
 
 async function getHeroConfig(): Promise<HeroSectionConfig | null> {
   try {
@@ -105,7 +111,7 @@ export default async function Home() {
                     <section key={categoryId}>
                         <div className="container mx-auto px-4">
                             <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold font-headline">{categoryData.name}</h2>
+                                <h2 className={`text-xl font-bold ${poppins.className}`}>{categoryData.name}</h2>
                                 <Button variant="link" asChild>
                                     <Link href={`/category/${categoryId}`}>See All</Link>
                                 </Button>
