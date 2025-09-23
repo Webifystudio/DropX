@@ -164,7 +164,7 @@ export default function CheckoutPage() {
             title: "Order Placed!",
             description: "We will message you on WhatsApp to confirm your order.",
         });
-        router.push("/orders");
+        router.push(`/order-success/${orderDocRef.id}`);
     } catch (e) {
         console.error("Error adding document: ", e);
         toast({
@@ -331,5 +331,3 @@ export default function CheckoutPage() {
     </div>
   )
 }
-
-    
