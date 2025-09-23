@@ -12,7 +12,7 @@ export function ProductList({ products }: ProductListProps) {
     <ScrollArea>
         <div className="flex space-x-4 pb-4">
             {products.map((product) => (
-                <div key={product.id} className="w-64 flex-shrink-0">
+                <div key={product.id} className="w-48 flex-shrink-0">
                      <ProductCard product={product} />
                 </div>
             ))}
