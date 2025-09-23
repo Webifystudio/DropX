@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/context/cart-context';
@@ -12,8 +13,12 @@ type AddToCartButtonProps = {
 export function AddToCartButton({ product }: AddToCartButtonProps) {
   const { addToCart } = useCart();
 
+  const handleAddToCart = () => {
+    addToCart(product, 1, product.colors?.[0], product.sizes?.[0]);
+  }
+
   return (
-    <Button size="lg" className="w-full" onClick={() => addToCart(product)}>
+    <Button size="lg" className="w-full" onClick={handleAddToCart}>
       <ShoppingCart className="mr-2 h-5 w-5" />
       Add to Cart
     </Button>

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -21,11 +21,12 @@ import { useForm, Controller, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { collection, addDoc, Timestamp } from "firebase/firestore"
+import { collection, addDoc, Timestamp, onSnapshot } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
 import { Plus, Trash } from "lucide-react"
 import Image from "next/image"
+import type { Supplier } from "@/lib/types"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -33,7 +34,9 @@ const productSchema = z.object({
   normalPrice: z.coerce.number().min(0, "Price cannot be negative"),
   currentPrice: z.coerce.number().min(0, "Price cannot be negative"),
   category: z.string().min(1, "Please select a category"),
+  supplierId: z.string().optional(),
   sizes: z.array(z.object({ value: z.string().min(1, "Size cannot be empty") })).optional(),
+  colors: z.array(z.object({ name: z.string().min(1, "Color name is required"), code: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be a valid hex code") })).optional(),
   isFreeShipping: z.boolean().default(true),
   shippingCharge: z.coerce.number().optional(),
   images: z.any()
@@ -52,8 +55,19 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const { toast } = useToast()
   
+  useEffect(() => {
+    if (isOpen) {
+      const unsubscribe = onSnapshot(collection(db, 'suppliers'), (snapshot) => {
+        const suppliersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supplier));
+        setSuppliers(suppliersData);
+      });
+      return () => unsubscribe();
+    }
+  }, [isOpen]);
+
   const {
     register,
     handleSubmit,
@@ -65,13 +79,19 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     resolver: zodResolver(productSchema),
     defaultValues: {
         isFreeShipping: true,
-        sizes: [{ value: 'M' }]
+        sizes: [{ value: 'M' }],
+        colors: [{ name: 'Default', code: '#000000' }]
     }
   })
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
     control,
     name: "sizes"
+  });
+  
+  const { fields: colorFields, append: appendColor, remove: removeColor } = useFieldArray({
+    control,
+    name: "colors"
   });
 
   const isFreeShipping = watch("isFreeShipping")
@@ -120,7 +140,9 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
         normalPrice: data.normalPrice,
         currentPrice: data.currentPrice,
         category: data.category,
+        supplierId: data.supplierId,
         sizes: data.sizes?.map(s => s.value) || [],
+        colors: data.colors || [],
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
@@ -190,40 +212,63 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
                 </div>
             </div>
             
-            <div className="space-y-2">
-                <Label>Category</Label>
-                 <Controller
-                    name="category"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((mainCategory) => (
-                            <SelectGroup key={mainCategory.id}>
-                              <Label className="px-2 py-1.5 text-sm font-semibold">{mainCategory.name}</Label>
-                              {mainCategory.subCategories.map((subCategory) => (
-                                <SelectItem key={subCategory.id} value={subCategory.id}>
-                                  {subCategory.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Controller
+                        name="category"
+                        control={control}
+                        render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {categories.map((mainCategory) => (
+                                <SelectGroup key={mainCategory.id}>
+                                <Label className="px-2 py-1.5 text-sm font-semibold">{mainCategory.name}</Label>
+                                {mainCategory.subCategories.map((subCategory) => (
+                                    <SelectItem key={subCategory.id} value={subCategory.id}>
+                                    {subCategory.name}
+                                    </SelectItem>
+                                ))}
+                                </SelectGroup>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        )}
+                    />
+                    {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label>Supplier</Label>
+                    <Controller
+                        name="supplierId"
+                        control={control}
+                        render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a supplier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {suppliers.map((supplier) => (
+                                    <SelectItem key={supplier.id} value={supplier.id}>
+                                    {supplier.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        )}
+                    />
+                </div>
             </div>
 
             <div className="space-y-2">
                 <Label>Sizes</Label>
-                {fields.map((field, index) => (
+                {sizeFields.map((field, index) => (
                   <div key={field.id} className="flex items-center gap-2">
                     <Input {...register(`sizes.${index}.value`)} placeholder={`Size ${index + 1}`} />
-                    <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                    <Button type="button" variant="destructive" size="icon" onClick={() => removeSize(index)}>
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
@@ -232,12 +277,36 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ value: "" })}
+                  onClick={() => appendSize({ value: "" })}
                   className="mt-2"
                 >
                   <Plus className="mr-2 h-4 w-4" /> Add Size
                 </Button>
-                {errors.sizes && <p className="text-sm text-destructive">{errors.sizes.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <Label>Colors</Label>
+                {colorFields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2">
+                    <Input {...register(`colors.${index}.name`)} placeholder="Color Name (e.g. Black)" />
+                    <div className="relative">
+                        <Input {...register(`colors.${index}.code`)} placeholder="#000000" className="pl-8" />
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full border" style={{ backgroundColor: watch(`colors.${index}.code`) }}></span>
+                    </div>
+                    <Button type="button" variant="destructive" size="icon" onClick={() => removeColor(index)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                 <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendColor({ name: "", code: "#000000" })}
+                  className="mt-2"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Add Color
+                </Button>
             </div>
             
             <div className="space-y-2">
@@ -300,5 +369,3 @@ export function AddProductDialog({ children }: { children: React.ReactNode }) {
     </Dialog>
   )
 }
-
-    

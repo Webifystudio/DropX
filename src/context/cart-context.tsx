@@ -7,9 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, color?: { name: string; code: string }, size?: string) => void;
+  removeFromCart: (productId: string, color?: { name: string; code: string }, size?: string) => void;
+  updateQuantity: (productId: string, quantity: number, color?: { name: string; code: string }, size?: string) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
@@ -39,17 +39,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [cartItems, isClient]);
 
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, quantity = 1, color?: { name: string; code: string }, size?: string) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.product.id === product.id);
+      const existingItem = prevItems.find(item => 
+        item.product.id === product.id &&
+        item.color?.code === color?.code &&
+        item.size === size
+      );
+
       if (existingItem) {
         return prevItems.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+          item.product.id === product.id && item.color?.code === color?.code && item.size === size
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prevItems, { product, quantity: 1 }];
+      return [...prevItems, { product, quantity, color, size }];
     });
     toast({
         title: "Added to cart",
@@ -57,17 +62,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
+  const removeFromCart = (productId: string, color?: { name: string; code: string }, size?: string) => {
+    setCartItems((prevItems) => prevItems.filter(item => 
+        !(item.product.id === productId && item.color?.code === color?.code && item.size === size)
+    ));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, color?: { name: string; code: string }, size?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, color, size);
     } else {
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          item.product.id === productId && item.color?.code === color?.code && item.size === size 
+            ? { ...item, quantity } 
+            : item
         )
       );
     }

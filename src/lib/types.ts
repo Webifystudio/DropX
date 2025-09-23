@@ -9,9 +9,18 @@ export type Product = {
   images: string[];
   category: string; // From subcategories
   sizes?: string[];
+  colors?: { name: string; code: string }[];
+  supplierId?: string;
   rating?: number;
   reviewCount?: number;
   createdAt: string;
+};
+
+export type Supplier = {
+    id: string;
+    name: string;
+    contact: string;
+    email?: string;
 };
 
 export type SubCategory = {
@@ -39,6 +48,8 @@ export type Review = {
 export type CartItem = {
   product: Product;
   quantity: number;
+  color?: { name: string; code: string };
+  size?: string;
 };
 
 export type ShippingAddress = {

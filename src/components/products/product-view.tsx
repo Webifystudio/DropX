@@ -31,6 +31,7 @@ export function ProductView({ product }: ProductViewProps) {
   const { addToCart, cartCount } = useCart();
   const { user } = useAuth();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || undefined);
   
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -51,9 +52,12 @@ export function ProductView({ product }: ProductViewProps) {
     fetchReviews();
   }, [product.id]);
 
+  const handleAddToCart = () => {
+      addToCart(product, 1, selectedColor, selectedSize);
+  }
 
   const handleBuyNow = () => {
-    addToCart(product);
+    addToCart(product, 1, selectedColor, selectedSize);
     router.push('/cart');
   }
 
@@ -171,6 +175,23 @@ export function ProductView({ product }: ProductViewProps) {
                     <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>
             </div>
 
+            {product.colors && product.colors.length > 0 && (
+                <div className="mt-6">
+                    <p className="font-semibold mb-2">Color: <span className="font-normal">{selectedColor?.name}</span></p>
+                    <div className="flex gap-3 flex-wrap">
+                        {product.colors.map(color => (
+                            <button
+                                key={color.name} 
+                                onClick={() => setSelectedColor(color)}
+                                className={`h-8 w-8 rounded-full border-2 transition-all ${selectedColor?.code === color.code ? 'border-primary scale-110' : 'border-transparent'}`}
+                            >
+                               <div className="h-full w-full rounded-full border border-stone-200" style={{ backgroundColor: color.code }}></div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {product.sizes && product.sizes.length > 0 && (
                 <div className="mt-6">
                     <p className="font-semibold mb-2">Size</p>
@@ -247,7 +268,7 @@ export function ProductView({ product }: ProductViewProps) {
       </div>
         <div className="p-4 border-t bg-background sticky bottom-0">
             <div className="flex gap-4">
-                <Button variant="outline" className="w-full" size="lg" onClick={() => addToCart(product)}>
+                <Button variant="outline" className="w-full" size="lg" onClick={handleAddToCart}>
                     <ShoppingCart className="mr-2 h-5 w-5" />
                     Add to Cart
                 </Button>

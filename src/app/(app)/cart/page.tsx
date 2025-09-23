@@ -77,25 +77,30 @@ export default function CartPage() {
         </div>
 
       <div className="space-y-6">
-        {cartItems.map(({ product, quantity }) => (
-          <div key={product.id} className="flex items-center gap-4">
+        {cartItems.map(({ product, quantity, color, size }) => (
+          <div key={`${product.id}-${color?.code}-${size}`} className="flex items-center gap-4">
             <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 p-2">
               <Image src={product.images[0]} alt={product.name} fill className="object-contain" />
             </div>
             <div className="flex-grow">
               <Link href={`/product/${product.id}`} className="font-semibold hover:text-primary">{product.name}</Link>
+               <div className="text-sm text-muted-foreground mt-1">
+                {color && <span>Color: {color.name}</span>}
+                {color && size && <span>, </span>}
+                {size && <span>Size: {size}</span>}
+              </div>
               <p className="text-lg font-bold mt-1">₹{product.currentPrice.toLocaleString('en-IN')}</p>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(product.id, quantity - 1)}>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(product.id, quantity - 1, color, size)}>
                     <Minus className="h-4 w-4" />
                 </Button>
                 <span className="font-bold w-4 text-center">{quantity}</span>
-                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(product.id, quantity + 1)}>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(product.id, quantity + 1, color, size)}>
                     <Plus className="h-4 w-4" />
                 </Button>
             </div>
-             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive rounded-full" onClick={() => removeFromCart(product.id)}>
+             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive rounded-full" onClick={() => removeFromCart(product.id, color, size)}>
                 <Trash2 className="h-5 w-5" />
             </Button>
           </div>

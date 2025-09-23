@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -8,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, Mail, Search, MessageSquare, Copy, ExternalLink, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -22,7 +21,7 @@ import {
   DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Order } from '@/lib/types';
+import type { Order, Supplier } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -61,6 +60,7 @@ function getStatusBadge(status: 'Processing' | 'Shipped' | 'Delivered' | 'Confir
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderWithId[]>([]);
+  const [suppliers, setSuppliers] = useState<Map<string, Supplier>>(new Map());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
@@ -74,12 +74,24 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
+    const unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
       const ordersData: OrderWithId[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderWithId));
       setOrders(ordersData.sort((a, b) => b.date.seconds - a.date.seconds));
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const unsubscribeSuppliers = onSnapshot(collection(db, 'suppliers'), (snapshot) => {
+      const suppliersData = new Map<string, Supplier>();
+      snapshot.docs.forEach(doc => {
+        suppliersData.set(doc.id, { id: doc.id, ...doc.data() } as Supplier);
+      });
+      setSuppliers(suppliersData);
+    });
+
+    return () => {
+        unsubscribeOrders();
+        unsubscribeSuppliers();
+    };
   }, []);
   
   const filteredOrders = useMemo(() => {
@@ -323,19 +335,33 @@ export default function AdminOrdersPage() {
                     {selectedOrder?.shippingAddress.name} - {selectedOrder?.shippingAddress.whatsappNumber}
                 </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-                {selectedOrder?.items.map(item => (
-                    <div key={item.product.id} className="flex items-center gap-4">
-                        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
-                            <Image src={item.product.images[0]} alt={item.product.name} fill objectFit="cover" />
+            <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+                {selectedOrder?.items.map(item => {
+                    const supplier = item.product.supplierId ? suppliers.get(item.product.supplierId) : null;
+                    return (
+                        <div key={item.product.id} className="flex items-start gap-4">
+                            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
+                                <Image src={item.product.images[0]} alt={item.product.name} fill objectFit="cover" />
+                            </div>
+                            <div className="flex-grow">
+                                <p className="font-medium">{item.product.name}</p>
+                                <div className="text-sm text-muted-foreground">
+                                    {item.color && (
+                                        <div className="flex items-center gap-2">Color: {item.color.name} <div className="h-3 w-3 rounded-full border" style={{ backgroundColor: item.color.code }}></div></div>
+                                    )}
+                                    {item.size && <p>Size: {item.size}</p>}
+                                    <p>Qty: {item.quantity}</p>
+                                </div>
+                                {supplier && (
+                                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                       <User className="h-3 w-3"/> Supplier: {supplier.name}
+                                    </div>
+                                )}
+                            </div>
+                            <p className="font-medium">₹{(item.product.currentPrice * item.quantity).toLocaleString('en-IN')}</p>
                         </div>
-                        <div className="flex-grow">
-                            <p className="font-medium">{item.product.name}</p>
-                            <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                        </div>
-                        <p className="font-medium">₹{(item.product.currentPrice * item.quantity).toLocaleString('en-IN')}</p>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
              <Separator />
             <div className="grid gap-2 text-sm">

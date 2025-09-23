@@ -20,6 +20,8 @@ export async function getProducts(): Promise<Product[]> {
         images: data.images || [],
         category: data.category,
         sizes: data.sizes || [],
+        colors: data.colors || [],
+        supplierId: data.supplierId,
         createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
       } as Product;
     });
@@ -47,6 +49,8 @@ export async function getProductById(productId: string): Promise<Product | undef
         images: data.images || [],
         category: data.category,
         sizes: data.sizes || [],
+        colors: data.colors || [],
+        supplierId: data.supplierId,
         createdAt: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
       } as Product;
     } else {
