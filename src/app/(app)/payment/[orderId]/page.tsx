@@ -13,7 +13,7 @@ import { CheckCircle, Package, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
-export default function OrderSuccessPage() {
+export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();

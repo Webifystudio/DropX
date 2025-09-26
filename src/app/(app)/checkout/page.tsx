@@ -174,7 +174,7 @@ export default function CheckoutPage() {
             title: "Order Placed!",
             description: "We will message you on WhatsApp to confirm your order.",
         });
-        router.push(`/order-success/${orderDocRef.id}`);
+        router.push(`/payment/${orderDocRef.id}`);
         clearCart();
         localStorage.removeItem('currentStore');
     } catch (e) {
