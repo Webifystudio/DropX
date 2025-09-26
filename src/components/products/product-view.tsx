@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -234,8 +235,8 @@ export function ProductView({ product }: ProductViewProps) {
                         <Truck className="h-5 w-5 text-primary"/>
                     </div>
                     <div>
-                        <p className="font-semibold text-sm">Free Shipping</p>
-                        <p className="text-xs text-muted-foreground">On all orders</p>
+                        <p className="font-semibold text-sm">{product.isFreeShipping ? "Free Shipping" : "Shipping extra"}</p>
+                        <p className="text-xs text-muted-foreground">{product.isFreeShipping ? "On all orders" : `Charge: ₹${product.shippingCharge}`}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">

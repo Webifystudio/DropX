@@ -195,6 +195,9 @@ export default function CheckoutPage() {
   }
 
   if (step === 'payment') {
+      const qrCodeUrl = placedOrder?.items?.[0]?.product?.qrCodeUrl || "https://i.ibb.co/Q9qSgL6/qr.png";
+      const qrCodeHint = placedOrder?.items?.[0]?.product?.qrCodeUrl ? "product QR code" : "default QR code";
+
       return (
             <div 
                 className="py-12 px-4 flex items-center justify-center bg-background"
@@ -214,12 +217,12 @@ export default function CheckoutPage() {
                 <div className="px-8 pb-8">
                     <div className="bg-white p-4 rounded-xl shadow-inner">
                         <Image
-                            src="https://i.ibb.co/Q9qSgL6/qr.png" 
+                            src={qrCodeUrl} 
                             alt="Payment QR Code"
                             width={400}
                             height={400}
                             className="w-full h-auto rounded-lg"
-                            data-ai-hint="QR code"
+                            data-ai-hint={qrCodeHint}
                         />
                     </div>
                 </div>
