@@ -169,13 +169,14 @@ export default function CheckoutPage() {
         // Save address to local storage on successful order
         localStorage.setItem('savedShippingAddress', JSON.stringify(values));
 
-        clearCart();
-        localStorage.removeItem('currentStore');
+        
         toast({
             title: "Order Placed!",
             description: "We will message you on WhatsApp to confirm your order.",
         });
         router.push(`/order-success/${orderDocRef.id}`);
+        clearCart();
+        localStorage.removeItem('currentStore');
     } catch (e) {
         console.error("Error adding document: ", e);
         toast({
@@ -347,5 +348,3 @@ export default function CheckoutPage() {
     </div>
   )
 }
-
-    
