@@ -43,7 +43,7 @@ const formSchema = z.object({
 })
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartSubtotal, shippingTotal, cartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -388,11 +388,11 @@ export default function CheckoutPage() {
                     <Separator />
                      <div className="flex justify-between">
                         <span>Subtotal</span>
-                        <span className="font-medium">₹{cartTotal.toLocaleString('en-IN')}</span>
+                        <span className="font-medium">₹{cartSubtotal.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
                         <span>Shipping</span>
-                        <span className="font-medium">Free</span>
+                        <span className="font-medium">{shippingTotal > 0 ? `₹${shippingTotal.toLocaleString('en-IN')}` : 'Free'}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-lg font-bold">

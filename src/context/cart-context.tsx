@@ -12,6 +12,8 @@ interface CartContextType {
   updateQuantity: (productId: string, quantity: number, color?: { name: string; code: string }, size?: string) => void;
   clearCart: () => void;
   cartCount: number;
+  cartSubtotal: number;
+  shippingTotal: number;
   cartTotal: number;
 }
 
@@ -87,7 +89,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const cartTotal = cartItems.reduce((acc, item) => acc + (item.product.currentPrice * item.quantity), 0);
+  const cartSubtotal = cartItems.reduce((acc, item) => acc + (item.product.currentPrice * item.quantity), 0);
+  const shippingTotal = cartItems.reduce((acc, item) => {
+    const shippingCost = item.product.isFreeShipping ? 0 : (item.product.shippingCharge || 0);
+    return acc + (shippingCost * item.quantity);
+  }, 0);
+  const cartTotal = cartSubtotal + shippingTotal;
+
 
   return (
     <CartContext.Provider
@@ -98,6 +106,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updateQuantity,
         clearCart,
         cartCount: isClient ? cartCount : 0, // Return 0 on server
+        cartSubtotal,
+        shippingTotal,
         cartTotal
       }}
     >

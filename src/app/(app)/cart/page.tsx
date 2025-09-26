@@ -15,7 +15,7 @@ import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartSubtotal, shippingTotal, cartTotal, cartCount } = useCart();
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -118,11 +118,11 @@ export default function CartPage() {
             <h2 className="text-xl font-bold">Order Summary</h2>
             <div className="flex justify-between">
                 <span className="text-muted-foreground">Sub Total</span>
-                <span className="font-semibold">₹{cartTotal.toLocaleString('en-IN')}</span>
+                <span className="font-semibold">₹{cartSubtotal.toLocaleString('en-IN')}</span>
             </div>
             <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery fee</span>
-                <span className="font-semibold">Free</span>
+                <span className="font-semibold">{shippingTotal > 0 ? `₹${shippingTotal.toLocaleString('en-IN')}` : 'Free'}</span>
             </div>
              <Separator/>
             <div className="flex justify-between text-xl font-bold">
