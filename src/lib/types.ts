@@ -11,6 +11,7 @@ export type Product = {
   sizes?: string[];
   colors?: { name: string; code: string }[];
   supplierId?: string;
+  qrCodeUrl?: string;
   rating?: number;
   reviewCount?: number;
   createdAt: any; // Can be Timestamp or string

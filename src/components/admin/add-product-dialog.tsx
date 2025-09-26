@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -39,7 +40,8 @@ const productSchema = z.object({
   colors: z.array(z.object({ name: z.string().min(1, "Color name is required"), code: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be a valid hex code") })).optional(),
   isFreeShipping: z.boolean().default(true),
   shippingCharge: z.coerce.number().optional(),
-  images: z.any()
+  images: z.any(),
+  qrCode: z.any()
 }).refine(data => data.currentPrice <= data.normalPrice, {
     message: "Current price cannot be greater than normal price",
     path: ["currentPrice"],
@@ -54,13 +56,14 @@ type ProductFormValues = z.infer<typeof productSchema>
 type AddProductDialogProps = {
   product?: Product;
   children: React.ReactNode;
-  onOpenChange?: (open: boolean) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
-export function AddProductDialog({ product, children, onOpenChange }: AddProductDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AddProductDialog({ product, children, isOpen, onOpenChange }: AddProductDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [qrCodePreview, setQrCodePreview] = useState<string | null>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const { toast } = useToast()
   const isEditMode = !!product;
@@ -96,6 +99,9 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
         if (product.images) {
             setImagePreviews(product.images);
         }
+        if (product.qrCodeUrl) {
+            setQrCodePreview(product.qrCodeUrl);
+        }
     } else {
         reset({
             name: '',
@@ -108,9 +114,11 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
             shippingCharge: 0,
             sizes: [{ value: 'M' }],
             colors: [{ name: 'Default', code: '#000000' }],
-            images: null
+            images: null,
+            qrCode: null
         });
         setImagePreviews([]);
+        setQrCodePreview(null);
     }
   }, [isOpen, product, reset]);
 
@@ -126,7 +134,6 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
   });
 
   const isFreeShipping = watch("isFreeShipping")
-  const watchImages = watch("images");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -135,42 +142,49 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
         setImagePreviews(previews);
     }
   }
-  
-  useEffect(() => {
-    // This effect is needed if images are cleared programmatically (e.g. on reset)
-    // and we need to clear previews. For file inputs, direct manipulation is tricky.
-    // The main logic is now in handleImageChange and the initial useEffect.
-  }, [watchImages]);
+
+  const handleQrCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        setQrCodePreview(URL.createObjectURL(file));
+    }
+  }
+
+  const uploadToImgBB = async (file: File) => {
+    const imgbbApiKey = "81b665cd5c10e982384fcdec4b410fba";
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      return result.data.url;
+    } else {
+      throw new Error(`Image upload failed: ${result.error.message}`);
+    }
+  }
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
-    const imgbbApiKey = "81b665cd5c10e982384fcdec4b410fba";
     let imageUrls: string[] = product?.images || [];
+    let qrCodeUrl = product?.qrCodeUrl || '';
 
     try {
       if (data.images && data.images.length > 0) {
         const uploadPromises = Array.from(data.images).map(async (file: any) => {
-          // If the file is a string, it's an existing URL, so just return it
           if (typeof file === 'string') return file;
-
-          const formData = new FormData();
-          formData.append("image", file);
-
-          const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
-            method: "POST",
-            body: formData,
-          });
-
-          const result = await response.json();
-          if (result.success) {
-            return result.data.url;
-          } else {
-            throw new Error(`Image upload failed: ${result.error.message}`);
-          }
+          return uploadToImgBB(file);
         });
-        // Filter out old URLs that are no longer in previews if new images were added
         const newImageUrls = await Promise.all(uploadPromises);
         imageUrls = isEditMode && imagePreviews.every(p => p.startsWith('http')) ? [...imageUrls, ...newImageUrls] : newImageUrls;
+      }
+
+      if (data.qrCode && data.qrCode.length > 0) {
+        qrCodeUrl = await uploadToImgBB(data.qrCode[0]);
       }
       
       const productData = {
@@ -185,6 +199,7 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
+        qrCodeUrl: qrCodeUrl,
         createdAt: isEditMode ? product.createdAt : Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -204,7 +219,7 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
         });
       }
 
-      setIsOpen(false)
+      onOpenChange(false);
     } catch (error) {
       console.error("Error saving product: ", error)
       toast({
@@ -216,16 +231,9 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
       setIsSubmitting(false)
     }
   }
-  
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (onOpenChange) {
-      onOpenChange(open);
-    }
-  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -383,6 +391,27 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
                 )}
             </div>
 
+            <div className="space-y-2">
+                <Label htmlFor="qrCode">Payment QR Code</Label>
+                <Input 
+                    id="qrCode" 
+                    type="file" 
+                    {...register("qrCode")} 
+                    onChange={handleQrCodeChange}
+                    accept="image/*"
+                />
+                 {qrCodePreview && (
+                    <div className="relative h-20 w-20 mt-2">
+                        <Image
+                            src={qrCodePreview}
+                            alt="QR Code Preview"
+                            fill
+                            className="rounded-md object-cover"
+                        />
+                    </div>
+                )}
+            </div>
+
             <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                     <Controller
@@ -407,7 +436,7 @@ export function AddProductDialog({ product, children, onOpenChange }: AddProduct
                 )}
             </div>
             <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : isEditMode ? "Save Changes" : "Add Product"}
                 </Button>

@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,7 +26,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,15 +63,26 @@ export default function AdminProductsPage() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
-    setIsEditDialogOpen(true);
+    setIsDialogOpen(true);
+  }
+  
+  const handleAdd = () => {
+    setEditingProduct(undefined);
+    setIsDialogOpen(true);
   }
 
   return (
     <>
     <Card>
-      <CardHeader>
-        <CardTitle>Products</CardTitle>
-        <CardDescription>Manage your products and view their sales performance.</CardDescription>
+      <CardHeader className="sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <CardTitle>Products</CardTitle>
+            <CardDescription>Manage your products and view their sales performance.</CardDescription>
+        </div>
+        <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Product
+        </Button>
       </CardHeader>
       <CardContent>
         <Table>
@@ -157,15 +168,14 @@ export default function AdminProductsPage() {
       </CardContent>
     </Card>
 
-    {isEditDialogOpen && (
-        <AddProductDialog
-            product={editingProduct}
-            onOpenChange={setIsEditDialogOpen}
-        >
-            {/* This is a dummy trigger, the dialog is controlled by state */}
-            <span />
-        </AddProductDialog>
-    )}
+    <AddProductDialog
+        product={editingProduct}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+    >
+        {/* This is a dummy trigger, the dialog is controlled by state */}
+        <span />
+    </AddProductDialog>
     </>
   );
 }

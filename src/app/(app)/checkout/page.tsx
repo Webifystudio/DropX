@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -178,7 +179,7 @@ export default function CheckoutPage() {
             description: "Please complete the payment to confirm your order.",
         });
 
-        clearCart();
+        // clearCart(); // Removed to prevent HMR error
         localStorage.removeItem('currentStore');
         setStep('payment');
 
@@ -404,3 +405,5 @@ export default function CheckoutPage() {
     </div>
   )
 }
+
+    
