@@ -157,7 +157,7 @@ export default function CheckoutPage() {
         setPlacedOrder(newOrder);
 
         const customerNumber = newOrder.shippingAddress.whatsappNumber;
-        const message = encodeURIComponent(`I have completed the payment for my order #${newOrder.id.slice(-6)}.`);
+        const message = encodeURIComponent(`I have completed the payment for my order. Please do not delete the text below, as it contains your order ID.\n\nOrder ID: #${newOrder.id.slice(-6)}`);
         setWhatsAppUrl(`https://wa.me/91${customerNumber}?text=${message}`);
         
         await sendAdminOrderEmail(newOrder);
@@ -179,7 +179,6 @@ export default function CheckoutPage() {
             description: "Please complete the payment to confirm your order.",
         });
 
-        // clearCart(); // Removed to prevent HMR error
         localStorage.removeItem('currentStore');
         setStep('payment');
 
@@ -239,7 +238,7 @@ export default function CheckoutPage() {
                         I'll do it later
                     </Button>
                    <p className="mt-6 text-xs text-lime-100/60">
-                        If you're not ready to pay now, no worries! We will contact you on your provided WhatsApp number for payment. Thank you for your order!
+                        If you're not ready to pay now, no worries! We have your order details and will contact you on your provided WhatsApp number for payment. Thank you for your order!
                     </p>
                 </div>
               </div>
@@ -405,5 +404,3 @@ export default function CheckoutPage() {
     </div>
   )
 }
-
-    
