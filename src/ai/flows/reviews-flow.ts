@@ -28,15 +28,24 @@ const submitReviewFlow = ai.defineFlow(
   },
   async (reviewData) => {
     const productRef = doc(db, 'products', reviewData.productId);
-    const reviewsCollectionRef = collection(productRef, 'reviews');
 
     try {
       // Use a transaction to ensure atomicity
       await runTransaction(db, async (transaction) => {
-        // 1. Add the new review
+        // 1. Get the current product document to read existing rating and review count
+        const productSnap = await transaction.get(productRef);
+        if (!productSnap.exists()) {
+          throw "Product does not exist!";
+        }
+        
+        const productData = productSnap.data();
+        const oldRating = productData.rating || 0;
+        const oldReviewCount = productData.reviewCount || 0;
+
+        // 2. Add the new review
         const newReviewRef = doc(collection(db, `products/${reviewData.productId}/reviews`));
         
-        // Fetch user data to get photoURL
+        // Fetch user data to get photoURL (this read must also be within the transaction)
         const userRef = doc(db, 'users', reviewData.userId);
         const userSnap = await transaction.get(userRef);
         const userPhotoURL = userSnap.exists() ? userSnap.data().photoURL : null;
@@ -47,25 +56,15 @@ const submitReviewFlow = ai.defineFlow(
             date: serverTimestamp(),
         });
         
-        // 2. Get all reviews to calculate new average (including the new one)
-        // We cannot query in a transaction, so we need to get the product doc first
-        const productSnap = await transaction.get(productRef);
-        if (!productSnap.exists()) {
-          throw "Product does not exist!";
-        }
+        // 3. Calculate new average rating and review count
+        const newReviewCount = oldReviewCount + 1;
+        const newTotalRating = (oldRating * oldReviewCount) + reviewData.rating;
+        const newAverageRating = newTotalRating / newReviewCount;
         
-        const existingReviewsSnapshot = await getDocs(query(reviewsCollectionRef));
-        
-        const existingReviews = existingReviewsSnapshot.docs.map(doc => doc.data() as Review);
-        
-        const totalReviews = existingReviews.length + 1;
-        const totalRating = existingReviews.reduce((acc, review) => acc + review.rating, 0) + reviewData.rating;
-        const averageRating = totalRating / totalReviews;
-        
-        // 3. Update the product document with the new average rating and review count
+        // 4. Update the product document with the new aggregates
         transaction.update(productRef, {
-            rating: averageRating,
-            reviewCount: totalReviews,
+            rating: newAverageRating,
+            reviewCount: newReviewCount,
         });
       });
 
