@@ -21,6 +21,8 @@ export default function AppLayout({
   
   const isProductPage = pathname.startsWith('/product/');
   const isCartPage = pathname === '/cart';
+  const isCheckoutPage = pathname === '/checkout';
+
 
   useEffect(() => {
     const segments = pathname.split('/').filter(Boolean);
@@ -48,6 +50,14 @@ export default function AppLayout({
 
     fetchStore();
   }, [pathname]);
+
+  if (isCheckoutPage) {
+    return (
+        <StoreProvider store={store}>
+            {children}
+        </StoreProvider>
+    )
+  }
 
   return (
     <StoreProvider store={store}>
