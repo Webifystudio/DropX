@@ -48,6 +48,10 @@ export default async function TrackOrderPage({ params }: TrackOrderPageProps) {
     const currentStatus = statusInfo[order.status] || statusInfo['Processing'];
     const StatusIcon = currentStatus.icon;
 
+    const subtotal = order.items.reduce((acc, item) => acc + (item.product.currentPrice * item.quantity), 0);
+    const shippingTotal = order.total - subtotal;
+
+
     return (
         <div className="bg-muted min-h-screen py-8 sm:py-12 px-4">
             <div className="container mx-auto max-w-lg">
@@ -91,12 +95,12 @@ export default async function TrackOrderPage({ params }: TrackOrderPageProps) {
 
                          <div>
                             <div className="flex justify-between text-sm">
-                                <p>Order amount</p>
-                                <p className="font-medium">₹{order.total.toLocaleString('en-IN')}</p>
+                                <p>Subtotal</p>
+                                <p className="font-medium">₹{subtotal.toLocaleString('en-IN')}</p>
                             </div>
                              <div className="flex justify-between text-sm mt-2">
                                 <p>Shipping</p>
-                                <p className="font-medium">Free</p>
+                                <p className="font-medium">{shippingTotal > 0 ? `₹${shippingTotal.toLocaleString('en-IN')}` : 'Free'}</p>
                             </div>
                              <Separator className="my-3"/>
                              <div className="flex justify-between font-bold text-base">
@@ -136,3 +140,5 @@ export default async function TrackOrderPage({ params }: TrackOrderPageProps) {
         </div>
     )
 }
+
+    

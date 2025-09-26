@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 export default function AccountPage() {
   const { user, signOut, loading } = useAuth();
