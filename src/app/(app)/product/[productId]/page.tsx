@@ -9,7 +9,8 @@ type ProductPageProps = {
   };
 };
 
-export default async function ProductPage({ params: { productId } }: ProductPageProps) {
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { productId } = params;
   const productData = await getProductById(productId);
   
   if (!productData) {
