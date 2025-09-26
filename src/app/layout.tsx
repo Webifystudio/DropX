@@ -20,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="icon" href="https://i.ibb.co/CVCm52w/logo.png" />
+      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
