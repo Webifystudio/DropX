@@ -1,7 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, Search } from 'lucide-react';
+import { ShoppingCart, Search, Rocket } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useStore } from '@/context/store-context';
 
@@ -18,6 +19,9 @@ export default function Header() {
           </Link>
           
           <div className="flex items-center space-x-2">
+             <Link href="/creator" className="relative p-2">
+              <Rocket className="h-6 w-6 text-foreground" />
+            </Link>
             <Link href="/search" className="relative p-2">
               <Search className="h-6 w-6 text-foreground" />
             </Link>
@@ -35,3 +39,5 @@ export default function Header() {
     </header>
   );
 }
+
+    

@@ -16,6 +16,7 @@ import { Textarea } from '../ui/textarea';
 import { getReviews, submitReview as submitReviewFlow } from '@/ai/flows/reviews-flow';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 type ProductViewProps = {
@@ -95,7 +96,7 @@ export function ProductView({ product }: ProductViewProps) {
         await submitReviewFlow({
             productId: product.id,
             userId: user.uid,
-            userName: user.displayName || user.email || "Anonymous",
+            userName: user.displayName || "Anonymous",
             rating,
             text: reviewText,
         });
@@ -265,11 +266,10 @@ export function ProductView({ product }: ProductViewProps) {
             ) : reviews.length > 0 ? (
                 reviews.map(review => (
                     <div key={review.id} className="flex gap-4">
-                        <div className="flex-shrink-0">
-                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-bold">
-                                {review.userName.charAt(0)}
-                            </div>
-                        </div>
+                        <Avatar className="flex-shrink-0 h-12 w-12">
+                            <AvatarImage src={review.userPhotoURL} />
+                            <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
+                        </Avatar>
                         <div className="flex-grow">
                              <div className="flex justify-between items-center">
                                 <p className="font-semibold">{review.userName}</p>
@@ -338,3 +338,5 @@ export function ProductView({ product }: ProductViewProps) {
   );
 
 }
+
+    

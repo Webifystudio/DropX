@@ -3,24 +3,38 @@
 
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
-import { LogIn, AtSign, KeyRound, Eye, EyeOff } from 'lucide-react';
-import { auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { useState } from 'react';
+import { LogIn, AtSign, KeyRound, Eye, EyeOff, User, Camera, LogOut, Save } from 'lucide-react';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Image from 'next/image';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default function AccountPage() {
   const { user, signOut, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [photoURL, setPhotoURL] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+        setDisplayName(user.displayName || '');
+        setPhotoURL(user.photoURL || '');
+    }
+  }, [user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +54,15 @@ export default function AccountPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const defaultDisplayName = `DropXUser${Math.floor(1000 + Math.random() * 9000)}`;
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: defaultDisplayName });
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: defaultDisplayName,
+        photoURL: '',
+      });
       toast({ title: "Account Created!", description: "You have been successfully signed up and logged in." });
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -49,11 +71,72 @@ export default function AccountPage() {
       setIsSubmitting(false);
     }
   };
+  
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setIsSubmitting(true);
+
+    try {
+        let updatedPhotoURL = photoURL;
+        
+        if (newAvatarFile) {
+            const imgbbApiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+             if (!imgbbApiKey) {
+                toast({ title: "Error", description: "IMGBB API Key is not configured.", variant: "destructive" });
+                setIsSubmitting(false);
+                return;
+            }
+            const formData = new FormData();
+            formData.append("image", newAvatarFile);
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+            if (result.success) {
+                updatedPhotoURL = result.data.url;
+            } else {
+                throw new Error(`Image upload failed: ${result.error.message}`);
+            }
+        }
+        
+        await updateProfile(user, { displayName, photoURL: updatedPhotoURL });
+
+        const userDocRef = doc(db, "users", user.uid);
+        await setDoc(userDocRef, {
+            displayName,
+            photoURL: updatedPhotoURL,
+            email: user.email,
+        }, { merge: true });
+
+        setPhotoURL(updatedPhotoURL);
+        toast({ title: "Profile Updated", description: "Your profile has been successfully updated." });
+
+    } catch (error: any) {
+        console.error("Error updating profile:", error);
+        toast({ title: "Update Error", description: error.message, variant: "destructive" });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+  
+  const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        setNewAvatarFile(file);
+        setAvatarPreview(URL.createObjectURL(file));
+    }
+  }
+
 
   if (loading) {
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <Skeleton className="h-96 w-full max-w-md" />
+        <div className="container mx-auto px-4 py-8">
+            <div className="max-w-lg mx-auto space-y-6">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-12 w-full" />
+            </div>
         </div>
     );
   }
@@ -61,12 +144,46 @@ export default function AccountPage() {
   if (user) {
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="max-w-md mx-auto">
-                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-                    <h1 className="text-2xl font-bold mb-4">Welcome back!</h1>
-                    <p className="text-muted-foreground mb-6">{user.email}</p>
-                    <Button onClick={signOut} className="w-full">Sign Out</Button>
-                </div>
+            <div className="max-w-lg mx-auto">
+                <Card className="overflow-hidden">
+                    <div className="bg-muted/30 p-8 flex flex-col items-center gap-4">
+                        <div className="relative">
+                            <Avatar className="h-24 w-24 border-4 border-background">
+                                <AvatarImage src={avatarPreview || photoURL} alt={displayName} />
+                                <AvatarFallback className="text-3xl">
+                                    {displayName ? displayName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                             <label htmlFor="avatar-upload" className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90">
+                                <Camera className="h-4 w-4" />
+                                <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={onAvatarChange} />
+                            </label>
+                        </div>
+
+                        <div className="text-center">
+                            <h1 className="text-2xl font-bold">{displayName}</h1>
+                            <p className="text-muted-foreground">{user.email}</p>
+                        </div>
+                         <Button onClick={signOut} variant="outline">
+                            <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                        </Button>
+                    </div>
+
+                    <form onSubmit={handleProfileUpdate} className="p-6 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="displayName">Display Name</Label>
+                            <Input 
+                                id="displayName"
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                placeholder="Enter your display name"
+                            />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            {isSubmitting ? 'Saving...' : <><Save className="mr-2 h-4 w-4" /> Save Changes</>}
+                        </Button>
+                    </form>
+                </Card>
             </div>
         </div>
     )
@@ -188,3 +305,5 @@ export default function AccountPage() {
     </div>
   );
 }
+
+    

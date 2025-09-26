@@ -1,5 +1,4 @@
 
-
 export type Product = {
   id: string;
   name: string;
@@ -12,6 +11,8 @@ export type Product = {
   colors?: { name: string; code: string }[];
   supplierId?: string;
   qrCodeUrl?: string;
+  isFreeShipping: boolean;
+  shippingCharge?: number;
   rating?: number;
   reviewCount?: number;
   createdAt: any; // Can be Timestamp or string
@@ -42,6 +43,7 @@ export type Review = {
   productId: string;
   userId: string;
   userName: string;
+  userPhotoURL?: string;
   rating: number;
   text: string;
   date: any; // Firebase Timestamp
@@ -116,3 +118,5 @@ export type HeroSectionConfig = {
   link: string;
   imageUrl: string;
 };
+
+    

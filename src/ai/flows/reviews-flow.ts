@@ -35,19 +35,31 @@ const submitReviewFlow = ai.defineFlow(
       await runTransaction(db, async (transaction) => {
         // 1. Add the new review
         const newReviewRef = doc(collection(db, `products/${reviewData.productId}/reviews`));
+        
+        // Fetch user data to get photoURL
+        const userRef = doc(db, 'users', reviewData.userId);
+        const userSnap = await transaction.get(userRef);
+        const userPhotoURL = userSnap.exists() ? userSnap.data().photoURL : null;
+
         transaction.set(newReviewRef, {
             ...reviewData,
+            userPhotoURL: userPhotoURL, // Add photoURL to review
             date: serverTimestamp(),
         });
         
         // 2. Get all reviews to calculate new average (including the new one)
-        const reviewsSnapshot = await getDocs(query(reviewsCollectionRef));
+        // We cannot query in a transaction, so we need to get the product doc first
+        const productSnap = await transaction.get(productRef);
+        if (!productSnap.exists()) {
+          throw "Product does not exist!";
+        }
         
-        const existingReviews = reviewsSnapshot.docs.map(doc => doc.data() as Review);
-        const allReviews = [...existingReviews, reviewData];
-
-        const totalReviews = allReviews.length;
-        const totalRating = allReviews.reduce((acc, review) => acc + review.rating, 0);
+        const existingReviewsSnapshot = await getDocs(query(reviewsCollectionRef));
+        
+        const existingReviews = existingReviewsSnapshot.docs.map(doc => doc.data() as Review);
+        
+        const totalReviews = existingReviews.length + 1;
+        const totalRating = existingReviews.reduce((acc, review) => acc + review.rating, 0) + reviewData.rating;
         const averageRating = totalRating / totalReviews;
         
         // 3. Update the product document with the new average rating and review count
@@ -101,3 +113,5 @@ const getReviewsFlow = ai.defineFlow(
 export async function getReviews(productId: string): Promise<Review[]> {
     return (await getReviewsFlow(productId)) as Review[];
 }
+
+    
