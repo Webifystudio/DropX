@@ -22,7 +22,7 @@ export default function Footer() {
                     <div>
                         <h3 className="font-semibold mb-4">About</h3>
                         <ul className="space-y-2">
-                            <li><Link href="/contact-us" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
+                            <li><Link href="/support" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
                             <li><Link href="/creator" className="text-muted-foreground hover:text-primary">Become a Creator</Link></li>
                         </ul>
                     </div>

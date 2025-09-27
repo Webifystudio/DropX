@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Package, Truck, User, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 type TrackOrderPageProps = {
     params: {
@@ -134,11 +135,9 @@ export default async function TrackOrderPage({ params }: TrackOrderPageProps) {
                     </CardContent>
                 </Card>
                  <div className="text-center mt-6 text-xs text-muted-foreground">
-                    <p>Thank you for your order! Any questions? Contact us.</p>
+                    <p>Thank you for your order! Any questions? <Link href="/support" className="text-primary underline">Contact us</Link>.</p>
                 </div>
             </div>
         </div>
     )
 }
-
-    

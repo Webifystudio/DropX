@@ -103,7 +103,7 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
         if (product.qrCodeUrl) {
             setQrCodePreview(product.qrCodeUrl);
         }
-    } else {
+    } else if (isOpen && !product) {
         reset({
             name: '',
             description: '',
@@ -154,7 +154,12 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
   }
 
   const uploadToImgBB = async (file: File) => {
-    const imgbbApiKey = "81b665cd5c10e982384fcdec4b410fba";
+    const imgbbApiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+    if (!imgbbApiKey) {
+        toast({ title: "Error", description: "IMGBB API Key is not configured.", variant: "destructive" });
+        throw new Error("IMGBB API Key is not configured.");
+    }
+
     const formData = new FormData();
     formData.append("image", file);
 
@@ -178,12 +183,11 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
 
     try {
       if (data.images && data.images.length > 0) {
-        const uploadPromises = Array.from(data.images).map(async (file: any) => {
-          if (typeof file === 'string') return file;
-          return uploadToImgBB(file);
-        });
-        const newImageUrls = await Promise.all(uploadPromises);
-        imageUrls = isEditMode && imagePreviews.every(p => p.startsWith('http')) ? [...imageUrls, ...newImageUrls] : newImageUrls;
+        const filesToUpload = Array.from(data.images).filter(file => typeof file !== 'string');
+        if (filesToUpload.length > 0) {
+            const uploadPromises = filesToUpload.map(file => uploadToImgBB(file as File));
+            imageUrls = await Promise.all(uploadPromises);
+        }
       }
 
       if (data.qrCode && data.qrCode.length > 0) {
@@ -205,7 +209,7 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
         qrCodeUrl: qrCodeUrl,
         paymentButtonText: data.paymentButtonText,
         paymentLink: data.paymentLink,
-        createdAt: isEditMode ? product.createdAt : Timestamp.now(),
+        createdAt: isEditMode && product.createdAt ? product.createdAt : Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
 
@@ -463,3 +467,4 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
     </Dialog>
   )
 }
+
