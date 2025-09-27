@@ -1,4 +1,5 @@
 
+
 export type Product = {
   id: string;
   name: string;
@@ -119,4 +120,10 @@ export type HeroSectionConfig = {
   linkType: 'category' | 'custom';
   link: string;
   imageUrl: string;
+};
+
+export type SupportMessage = {
+    from: 'user' | 'bot';
+    text: string;
+    time: string;
 };
