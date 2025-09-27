@@ -22,13 +22,14 @@ export default function AppLayout({
   const isProductPage = pathname.startsWith('/product/');
   const isCartPage = pathname === '/cart';
   const isCheckoutPage = pathname === '/checkout';
+  const isSupportPage = pathname === '/support';
 
 
   useEffect(() => {
     const segments = pathname.split('/').filter(Boolean);
     const potentialStoreId = segments[0];
     
-    const nonStoreRoutes = ['product', 'cart', 'categories', 'category', 'checkout', 'orders', 'search', 'account', 'admin', 'creator', 'privacy-policy', 'terms-of-service', 'contact-us'];
+    const nonStoreRoutes = ['product', 'cart', 'categories', 'category', 'checkout', 'orders', 'search', 'account', 'admin', 'creator', 'privacy-policy', 'terms-of-service', 'contact-us', 'support'];
 
     async function fetchStore() {
         let currentStore: Store | null = null;
@@ -51,7 +52,7 @@ export default function AppLayout({
     fetchStore();
   }, [pathname]);
 
-  if (isCheckoutPage) {
+  if (isCheckoutPage || isSupportPage) {
     return (
         <StoreProvider store={store}>
             {children}
