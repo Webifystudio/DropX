@@ -182,9 +182,10 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
     let qrCodeUrl = product?.qrCodeUrl || '';
 
     try {
+      // Check if new images have been selected in the file input
       if (data.images && data.images.length > 0) {
-        imageUrls = []; // Clear existing images if new ones are uploaded
         const filesToUpload = Array.from(data.images);
+        // If there are files, upload them and overwrite the existing imageUrls
         const uploadPromises = filesToUpload.map(file => uploadToImgBB(file as File));
         imageUrls = await Promise.all(uploadPromises);
       }
