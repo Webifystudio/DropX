@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAuth } from '@/context/auth-context';
@@ -10,7 +9,7 @@ import { Paperclip, Mic, Send, Bot, MessageCircle, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input';
 import { useState, useEffect, useRef } from 'react';
 import type { SupportMessage } from '@/lib/types';
-import { handleSupportChat, SupportChatInput } from '@/ai/flows/support-flow';
+import { handleSupportChat, SupportChatInput } from '@/ai/flows/support-flow.tsx';
 import { cn } from '@/lib/utils';
 
 function SupportPageSkeleton() {
