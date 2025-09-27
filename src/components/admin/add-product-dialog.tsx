@@ -183,11 +183,10 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
 
     try {
       if (data.images && data.images.length > 0) {
-        const filesToUpload = Array.from(data.images).filter(file => typeof file !== 'string');
-        if (filesToUpload.length > 0) {
-            const uploadPromises = filesToUpload.map(file => uploadToImgBB(file as File));
-            imageUrls = await Promise.all(uploadPromises);
-        }
+        imageUrls = []; // Clear existing images if new ones are uploaded
+        const filesToUpload = Array.from(data.images);
+        const uploadPromises = filesToUpload.map(file => uploadToImgBB(file as File));
+        imageUrls = await Promise.all(uploadPromises);
       }
 
       if (data.qrCode && data.qrCode.length > 0) {
@@ -467,4 +466,3 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
     </Dialog>
   )
 }
-

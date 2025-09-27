@@ -4,10 +4,8 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import type { Product, Review } from '@/lib/types';
-import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, MessageSquare, Check } from 'lucide-react';
-import useEmblaCarousel, { type EmblaCarouselType } from 'embla-carousel-react'
+import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, Check } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { useState, useEffect, useCallback } from 'react';
@@ -17,16 +15,15 @@ import { getReviews, submitReview as submitReviewFlow } from '@/ai/flows/reviews
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
+import { ProductImageGalleryClient } from './product-image-gallery-client';
 
 type ProductViewProps = {
   product: Product;
 };
 
-
 export function ProductView({ product }: ProductViewProps) {
   const router = useRouter();
-  const { addToCart, cartCount } = useCart();
+  const { addToCart } = useCart();
   const { user } = useAuth();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || '');
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || undefined);
@@ -38,29 +35,6 @@ export function ProductView({ product }: ProductViewProps) {
   const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
-    setSelectedIndex(emblaApi.selectedScrollSnap())
-  }, []);
-
-  const onThumbClick = useCallback(
-    (index: number) => {
-      if (!emblaApi) return
-      emblaApi.scrollTo(index)
-    },
-    [emblaApi]
-  );
-
-  useEffect(() => {
-    if (!emblaApi) return
-    onSelect(emblaApi)
-    emblaApi.on('select', onSelect)
-    emblaApi.on('reInit', onSelect)
-  }, [emblaApi, onSelect]);
-
 
   const fetchReviews = async () => {
     setLoadingReviews(true);
@@ -134,44 +108,7 @@ export function ProductView({ product }: ProductViewProps) {
       </div>
       <div className="flex-1 overflow-y-auto pb-24">
         
-        <div className="bg-background p-4">
-            <div className="overflow-hidden rounded-lg" ref={emblaRef}>
-                <div className="flex touch-pan-y">
-                    {(product.images || []).map((imageUrl, index) => (
-                        <div className="relative flex-[0_0_100%] aspect-square" key={index}>
-                            <Image
-                                src={imageUrl}
-                                alt={`${product.name} - image ${index + 1}`}
-                                fill
-                                className="object-contain"
-                                data-ai-hint="product photo"
-                            />
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-5 gap-2">
-                {(product.images || []).map((imageUrl, index) => (
-                    <button key={index} onClick={() => onThumbClick(index)} className="aspect-square relative">
-                        <Image
-                            src={imageUrl}
-                            alt={`Thumbnail ${index + 1}`}
-                            fill
-                            className={cn(
-                                "object-cover rounded-md transition-opacity",
-                                index === selectedIndex ? "opacity-100" : "opacity-50"
-                            )}
-                        />
-                         <div className={cn(
-                             "absolute inset-0 rounded-md border-2 transition-all",
-                             index === selectedIndex ? "border-primary" : "border-transparent"
-                         )}></div>
-                    </button>
-                ))}
-            </div>
-        </div>
-
+        <ProductImageGalleryClient images={product.images || []} productName={product.name} />
 
         <div className="mt-4 bg-background p-4 rounded-t-2xl">
             <div className="flex justify-between items-start">
@@ -338,5 +275,3 @@ export function ProductView({ product }: ProductViewProps) {
   );
 
 }
-
-    
