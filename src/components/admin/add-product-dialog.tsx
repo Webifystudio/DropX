@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -41,7 +40,9 @@ const productSchema = z.object({
   isFreeShipping: z.boolean().default(true),
   shippingCharge: z.coerce.number().optional(),
   images: z.any(),
-  qrCode: z.any()
+  qrCode: z.any().optional(),
+  paymentButtonText: z.string().optional(),
+  paymentLink: z.string().url("Must be a valid URL").optional().or(z.literal('')),
 }).refine(data => data.currentPrice <= data.normalPrice, {
     message: "Current price cannot be greater than normal price",
     path: ["currentPrice"],
@@ -115,7 +116,9 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
             sizes: [{ value: 'M' }],
             colors: [{ name: 'Default', code: '#000000' }],
             images: null,
-            qrCode: null
+            qrCode: null,
+            paymentButtonText: '',
+            paymentLink: '',
         });
         setImagePreviews([]);
         setQrCodePreview(null);
@@ -200,6 +203,8 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
         qrCodeUrl: qrCodeUrl,
+        paymentButtonText: data.paymentButtonText,
+        paymentLink: data.paymentLink,
         createdAt: isEditMode ? product.createdAt : Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -391,25 +396,37 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
                 )}
             </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="qrCode">Payment QR Code</Label>
-                <Input 
-                    id="qrCode" 
-                    type="file" 
-                    {...register("qrCode")} 
-                    onChange={handleQrCodeChange}
-                    accept="image/*"
-                />
-                 {qrCodePreview && (
-                    <div className="relative h-20 w-20 mt-2">
-                        <Image
-                            src={qrCodePreview}
-                            alt="QR Code Preview"
-                            fill
-                            className="rounded-md object-cover"
-                        />
-                    </div>
-                )}
+             <div className="grid grid-cols-1 gap-4 border-t pt-4">
+                <Label className="font-semibold">Payment Options (Optional)</Label>
+                <div className="space-y-2">
+                    <Label htmlFor="qrCode">Payment QR Code</Label>
+                    <Input 
+                        id="qrCode" 
+                        type="file" 
+                        {...register("qrCode")} 
+                        onChange={handleQrCodeChange}
+                        accept="image/*"
+                    />
+                    {qrCodePreview && (
+                        <div className="relative h-20 w-20 mt-2">
+                            <Image
+                                src={qrCodePreview}
+                                alt="QR Code Preview"
+                                fill
+                                className="rounded-md object-cover"
+                            />
+                        </div>
+                    )}
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="paymentButtonText">Payment Button Text</Label>
+                    <Input id="paymentButtonText" {...register("paymentButtonText")} placeholder="e.g., Pay with UPI" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="paymentLink">Payment Link</Label>
+                    <Input id="paymentLink" {...register("paymentLink")} placeholder="e.g., https://pay.google.com/..." />
+                    {errors.paymentLink && <p className="text-sm text-destructive">{errors.paymentLink.message}</p>}
+                </div>
             </div>
 
             <div className="flex items-center space-x-4">

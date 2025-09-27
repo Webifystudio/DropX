@@ -11,6 +11,8 @@ export type Product = {
   colors?: { name: string; code: string }[];
   supplierId?: string;
   qrCodeUrl?: string;
+  paymentButtonText?: string;
+  paymentLink?: string;
   isFreeShipping: boolean;
   shippingCharge?: number;
   rating?: number;
@@ -118,5 +120,3 @@ export type HeroSectionConfig = {
   link: string;
   imageUrl: string;
 };
-
-    

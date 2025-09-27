@@ -24,15 +24,16 @@ import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Terminal, History, Loader2, MessageSquare } from "lucide-react"
+import { Terminal, History, Loader2, MessageSquare, Link as LinkIcon, QrCode } from "lucide-react"
 import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import type { Store, ShippingAddress, Order } from "@/lib/types"
+import type { Store, ShippingAddress, Order, Product } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 import { sendPushNotification } from "@/ai/flows/push-notifications-flow"
 import { sendOrderStatusEmail } from "@/ai/flows/send-email-flow"
 import { render } from "@react-email/components"
 import { AdminNewOrderEmail } from "@/components/emails/admin-new-order-email"
+import Link from "next/link"
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -53,6 +54,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<'address' | 'payment'>('address');
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
   const [whatsAppUrl, setWhatsAppUrl] = useState('');
+  const [paymentProduct, setPaymentProduct] = useState<Product | null>(null);
 
 
   useEffect(() => {
@@ -156,6 +158,10 @@ export default function CheckoutPage() {
         
         setPlacedOrder(newOrder);
 
+        if (newOrder.items.length > 0) {
+          setPaymentProduct(newOrder.items[0].product);
+        }
+
         const customerNumber = newOrder.shippingAddress.whatsappNumber;
         const message = encodeURIComponent(`I have completed the payment for my order. Please do not delete the text below, as it contains your order ID.\n\nOrder ID: #${newOrder.id.slice(-6)}`);
         setWhatsAppUrl(`https://wa.me/91${customerNumber}?text=${message}`);
@@ -179,6 +185,7 @@ export default function CheckoutPage() {
             description: "Please complete the payment to confirm your order.",
         });
 
+        clearCart();
         localStorage.removeItem('currentStore');
         setStep('payment');
 
@@ -195,36 +202,52 @@ export default function CheckoutPage() {
   }
 
   if (step === 'payment') {
-      const qrCodeUrl = placedOrder?.items?.[0]?.product?.qrCodeUrl || "https://i.ibb.co/Q9qSgL6/qr.png";
-      const qrCodeHint = placedOrder?.items?.[0]?.product?.qrCodeUrl ? "product QR code" : "default QR code";
+      const qrCodeUrl = paymentProduct?.qrCodeUrl;
+      const buttonText = paymentProduct?.paymentButtonText;
+      const paymentLink = paymentProduct?.paymentLink;
 
       return (
             <div 
-                className="py-12 px-4 flex items-center justify-center bg-background"
+                className="py-12 px-4 flex items-center justify-center bg-background min-h-screen"
                 style={{
-                    backgroundColor: '#1a2e23', // Dark green background
+                    backgroundColor: '#1a2e23',
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                 }}
             >
               <div className="max-w-md mx-auto bg-[#2e4b3a] rounded-2xl shadow-2xl overflow-hidden border border-lime-300/20">
                 <div className="p-8 text-center text-white">
                     <h1 className="text-3xl font-bold font-headline text-lime-300">Complete Your Payment</h1>
-                    <p className="mt-2 text-lime-100/80">
-                        Scan the QR code below to pay for your order.
+                     <p className="mt-2 text-lime-100/80">
+                      {qrCodeUrl && buttonText ? 'Use QR code or the payment button below.' : qrCodeUrl ? 'Scan the QR code below to pay.' : buttonText ? 'Use the payment button below.' : 'Contact us for payment.'}
                     </p>
                 </div>
 
-                <div className="px-8 pb-8">
-                    <div className="bg-white p-4 rounded-xl shadow-inner">
-                        <Image
-                            src={qrCodeUrl} 
-                            alt="Payment QR Code"
-                            width={400}
-                            height={400}
-                            className="w-full h-auto rounded-lg"
-                            data-ai-hint={qrCodeHint}
-                        />
-                    </div>
+                <div className="px-8 pb-8 space-y-6">
+                    {qrCodeUrl && (
+                        <div className="bg-white p-4 rounded-xl shadow-inner">
+                            <Image
+                                src={qrCodeUrl} 
+                                alt="Payment QR Code"
+                                width={400}
+                                height={400}
+                                className="w-full h-auto rounded-lg"
+                                data-ai-hint="QR code"
+                            />
+                        </div>
+                    )}
+                    {buttonText && paymentLink && (
+                        <Link href={paymentLink} target="_blank" rel="noopener noreferrer">
+                             <Button size="lg" className="w-full h-14 rounded-full text-lg bg-lime-400 text-gray-900 hover:bg-lime-500 transition-transform active:scale-95">
+                                <LinkIcon className="mr-2 h-6 w-6" />
+                                {buttonText}
+                            </Button>
+                        </Link>
+                    )}
+                    {(!qrCodeUrl && !buttonText) && (
+                        <div className="text-center text-white p-4 bg-red-900/50 rounded-lg">
+                            <p>No payment method configured for this product. Please contact support to complete your purchase.</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="bg-[#1a2e23] p-8 text-center text-white">
@@ -237,12 +260,12 @@ export default function CheckoutPage() {
                             Send Screenshot
                         </Button>
                     </a>
-                   <Button size="lg" variant="ghost" className="w-full mt-4 h-14 rounded-full text-lg text-lime-300/70 hover:text-lime-300" onClick={() => router.push('/orders')}>
+                   <Button size="lg" variant="ghost" className="w-full mt-4 h-14 rounded-full text-lg text-lime-300/70 hover:text-lime-300" onClick={() => router.push('/')}>
                         I'll do it later
                     </Button>
                    <p className="mt-6 text-xs text-lime-100/60">
                         If you're not ready to pay now, no worries! We have your order details and will contact you on your provided WhatsApp number for payment. Thank you for your order!
-                    </p>
+                   </p>
                 </div>
               </div>
             </div>
