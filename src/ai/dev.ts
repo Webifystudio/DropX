@@ -3,4 +3,3 @@ import './flows/send-email-flow';
 import './flows/reviews-flow';
 import './flows/push-notifications-flow';
 import './flows/orders-flow';
-import './flows/support-flow.tsx';

@@ -1,180 +1,41 @@
+
 'use client';
 
-import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Paperclip, Mic, Send, Bot, MessageCircle, Loader2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { useState, useEffect, useRef } from 'react';
-import type { SupportMessage } from '@/lib/types';
-import { handleSupportChat, SupportChatInput } from '@/ai/flows/support-flow.tsx';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
-function SupportPageSkeleton() {
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/30">
-            <div className="w-full max-w-md mx-auto p-4">
-                <Skeleton className="h-[90vh] w-full rounded-2xl" />
-            </div>
-        </div>
-    )
-}
+const WhatsAppIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+    </svg>
+);
+
 
 export default function SupportPage() {
-    const { user, loading } = useAuth();
-    const [messages, setMessages] = useState<SupportMessage[]>([]);
-    const [userInput, setUserInput] = useState('');
-    const [isLoadingResponse, setIsLoadingResponse] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        // Initial greeting from the bot when the component mounts
-        setMessages([
-            { from: 'bot', text: "Hello! I'm your AI support assistant. Please explain the problem you're facing.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-        ]);
-    }, []);
-    
-    useEffect(() => {
-        // Auto-scroll to the latest message
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
-
-    if (loading) {
-        return <SupportPageSkeleton />;
-    }
-
-    if (!user) {
-        return (
-            <div className="container mx-auto px-4 py-12 text-center">
-              <MessageCircle className="mx-auto h-24 w-24 text-muted-foreground" />
-              <h1 className="mt-4 text-2xl font-bold">Please sign in</h1>
-              <p className="mt-2 text-muted-foreground">You need to be signed in to access our support chat.</p>
-              <Button asChild className="mt-6">
-                <Link href="/account">Sign In</Link>
-              </Button>
-            </div>
-          );
-    }
-    
-    const handleSendMessage = async () => {
-        if (!userInput.trim() || isLoadingResponse || !user) return;
-
-        const userMessage: SupportMessage = {
-            from: 'user',
-            text: userInput,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-        
-        setMessages(prev => [...prev, userMessage]);
-        setUserInput('');
-        setIsLoadingResponse(true);
-
-        try {
-            const chatInput: SupportChatInput = {
-                user: {
-                    displayName: user.displayName,
-                    email: user.email,
-                },
-                history: [...messages, userMessage],
-            };
-            const botResponseText = await handleSupportChat(chatInput);
-            
-            const botMessage: SupportMessage = {
-                from: 'bot',
-                text: botResponseText,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, botMessage]);
-
-        } catch (error) {
-            console.error("Error getting AI response:", error);
-            const errorMessage: SupportMessage = {
-                from: 'bot',
-                text: "I'm sorry, I encountered an error. Please try again in a moment.",
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsLoadingResponse(false);
-        }
-    };
+    const supportNumber = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER || '910000000000';
+    const whatsappUrl = `https://wa.me/${supportNumber}?text=${encodeURIComponent("Hello, I need help with my order.")}`;
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-muted/30 p-4">
-            <div className="w-full max-w-md h-[calc(100vh-2rem)] flex flex-col bg-background rounded-3xl shadow-2xl overflow-hidden">
-                <div className="flex-shrink-0 p-4 border-b flex items-center justify-between bg-background">
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <Avatar>
-                                <AvatarFallback>S</AvatarFallback>
-                            </Avatar>
-                             <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
-                        </div>
-                        <div>
-                            <p className="font-bold">Support Team</p>
-                            <p className="text-xs text-green-500 font-semibold">Online</p>
-                        </div>
+        <div className="flex items-center justify-center min-h-screen bg-muted/30 p-4">
+            <Card className="w-full max-w-md shadow-2xl">
+                <CardHeader className="text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+                        <WhatsAppIcon />
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
-                        <Bot />
-                    </Button>
-                </div>
-                <div className="flex-1 p-4 overflow-y-auto space-y-6">
-                    {messages.map((msg, index) => (
-                        <div key={index} className={cn('flex items-end gap-2', msg.from === 'user' ? 'justify-end' : '')}>
-                             {msg.from === 'bot' && (
-                                <Avatar className="h-8 w-8">
-                                    <AvatarFallback>S</AvatarFallback>
-                                </Avatar>
-                            )}
-                            <div className={cn('max-w-[75%] p-3 rounded-2xl', msg.from === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none')}>
-                                <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
-                                <p className={cn('text-xs mt-1 text-right', msg.from === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>{msg.time}</p>
-                            </div>
-                             {msg.from === 'user' && user && (
-                                <Avatar className="h-8 w-8">
-                                     <AvatarImage src={user.photoURL || undefined} />
-                                    <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                            )}
-                        </div>
-                    ))}
-                    {isLoadingResponse && (
-                         <div className='flex items-end gap-2'>
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback>S</AvatarFallback>
-                            </Avatar>
-                            <div className='max-w-[75%] p-3 rounded-2xl bg-muted rounded-bl-none flex items-center gap-2'>
-                               <Loader2 className="h-4 w-4 animate-spin"/>
-                               <span className="text-sm text-muted-foreground">Typing...</span>
-                            </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
-                <div className="p-4 border-t bg-background flex-shrink-0">
-                    <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
-                        <Input 
-                            placeholder="Type a message..." 
-                            className="rounded-full h-12 pl-12 pr-24 bg-muted"
-                            value={userInput}
-                            onChange={(e) => setUserInput(e.target.value)}
-                            disabled={isLoadingResponse}
-                        />
-                         <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                             <Paperclip className="h-5 w-5 text-muted-foreground" />
-                         </div>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                            <Mic className="h-5 w-5 text-muted-foreground" />
-                             <Button type="submit" size="icon" className="rounded-full h-8 w-8" disabled={!userInput.trim() || isLoadingResponse}>
-                                <Send className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    <CardTitle className="mt-4 text-2xl font-bold">Contact Support</CardTitle>
+                    <CardDescription className="mt-2">
+                        Have questions or need help with your order? Tap the button below to chat with us directly on WhatsApp.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
+                        <Button size="lg" className="w-full h-14 rounded-full text-lg bg-green-500 hover:bg-green-600 text-white">
+                           <WhatsAppIcon />
+                            Chat on WhatsApp
+                        </Button>
+                    </a>
+                </CardContent>
+            </Card>
         </div>
     );
 }

@@ -21,7 +21,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardContent className="p-0">
           <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden">
             <Image 
-              src={product.images?.[0] || "https://picsum.photos/seed/placeholder/320/400"} 
+              src={product.images?.[0] || "https://i.ibb.co/CVCm52w/logo.png"} 
               alt={product.name} 
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
