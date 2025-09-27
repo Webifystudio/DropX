@@ -59,7 +59,7 @@ export default function SupportPage() {
     }
     
     const handleSendMessage = async () => {
-        if (!userInput.trim() || isLoadingResponse) return;
+        if (!userInput.trim() || isLoadingResponse || !user) return;
 
         const userMessage: SupportMessage = {
             from: 'user',
@@ -73,7 +73,10 @@ export default function SupportPage() {
 
         try {
             const chatInput: SupportChatInput = {
-                user,
+                user: {
+                    displayName: user.displayName,
+                    email: user.email,
+                },
                 history: [...messages, userMessage],
             };
             const botResponseText = await handleSupportChat(chatInput);
@@ -130,7 +133,7 @@ export default function SupportPage() {
                                 <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
                                 <p className={cn('text-xs mt-1 text-right', msg.from === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>{msg.time}</p>
                             </div>
-                             {msg.from === 'user' && (
+                             {msg.from === 'user' && user && (
                                 <Avatar className="h-8 w-8">
                                      <AvatarImage src={user.photoURL || undefined} />
                                     <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>

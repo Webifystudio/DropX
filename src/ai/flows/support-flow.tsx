@@ -10,7 +10,10 @@ import type { SupportMessage } from '@/lib/types';
 
 // Define schemas for chat input and output
 export const SupportChatInputSchema = z.object({
-  user: z.any(), // Firebase User object can be complex, using any for simplicity
+  user: z.object({
+    displayName: z.string().nullable(),
+    email: z.string().nullable(),
+  }),
   history: z.array(z.object({
       from: z.enum(['user', 'bot']),
       text: z.string(),
@@ -97,8 +100,8 @@ const supportChatFlow = ai.defineFlow(
             const { output: contactInfo } = await formFillPrompt({ conversation: lastUserMessage.text });
             
             const ticketData = {
-                userName: contactInfo?.name || user.displayName,
-                userEmail: contactInfo?.email || user.email,
+                userName: contactInfo?.name || user.displayName || 'Unknown',
+                userEmail: contactInfo?.email || user.email || 'Unknown',
                 userPhone: contactInfo?.phone || '',
                 problem: history.filter(m => m.from === 'user').map(m => m.text).join('\n\n'),
                 date: new Date().toLocaleString('en-IN'),
@@ -112,7 +115,7 @@ const supportChatFlow = ai.defineFlow(
                 html: emailHtml,
             });
 
-            return `Thank you, ${ticketData.userName}! Your support ticket has been created. Our team will contact you at ${ticketData.userEmail} or ${ticketData.userPhone} shortly.`;
+            return `Thank you, ${ticketData.userName}! Your support ticket has been created. Our team will contact you at ${ticketData.userEmail || ''} or ${ticketData.userPhone} shortly.`;
 
         } else {
              // It's a non-critical ongoing conversation, let's try to help.
