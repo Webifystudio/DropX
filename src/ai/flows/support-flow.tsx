@@ -1,3 +1,4 @@
+
 'use server';
 
 import { ai } from '@/ai/genkit';
@@ -8,8 +9,8 @@ import { SupportTicketEmail } from '@/components/emails/support-ticket-email';
 import type { UserInfo } from 'firebase/auth';
 import type { SupportMessage } from '@/lib/types';
 
-// Define schemas for chat input and output
-export const SupportChatInputSchema = z.object({
+// Define schemas for chat input and output internally
+const SupportChatInputSchema = z.object({
   user: z.object({
     displayName: z.string().nullable(),
     email: z.string().nullable(),
