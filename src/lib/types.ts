@@ -18,6 +18,8 @@ export type Product = {
   shippingCharge?: number;
   rating?: number;
   reviewCount?: number;
+  stock?: number | null; // null represents infinite stock
+  isActive?: boolean;
   createdAt: any; // Can be Timestamp or string
   updatedAt?: any;
 };

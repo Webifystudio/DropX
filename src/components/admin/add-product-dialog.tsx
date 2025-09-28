@@ -43,6 +43,8 @@ const productSchema = z.object({
   qrCode: z.any().optional(),
   paymentButtonText: z.string().optional(),
   paymentLink: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  stock: z.coerce.number().optional(),
+  isActive: z.boolean().default(true),
 }).refine(data => data.currentPrice <= data.normalPrice, {
     message: "Current price cannot be greater than normal price",
     path: ["currentPrice"],
@@ -119,6 +121,8 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
             qrCode: null,
             paymentButtonText: '',
             paymentLink: '',
+            stock: undefined,
+            isActive: true,
         });
         setImagePreviews([]);
         setQrCodePreview(null);
@@ -209,6 +213,8 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
         qrCodeUrl: qrCodeUrl,
         paymentButtonText: data.paymentButtonText,
         paymentLink: data.paymentLink,
+        stock: data.stock === undefined || data.stock === null ? null : data.stock, // Use null for infinity
+        isActive: data.isActive,
         createdAt: isEditMode && product.createdAt ? product.createdAt : Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -329,6 +335,11 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
             </div>
 
             <div className="space-y-2">
+                <Label htmlFor="stock">Stock Quantity</Label>
+                <Input id="stock" type="number" {...register("stock")} placeholder="Leave blank for infinite"/>
+            </div>
+
+            <div className="space-y-2">
                 <Label>Sizes</Label>
                 {sizeFields.map((field, index) => (
                   <div key={field.id} className="flex items-center gap-2">
@@ -432,7 +443,20 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
                     {errors.paymentLink && <p className="text-sm text-destructive">{errors.paymentLink.message}</p>}
                 </div>
             </div>
-
+            <div className="flex items-center space-x-2">
+                <Controller
+                    name="isActive"
+                    control={control}
+                    render={({ field }) => (
+                        <Switch
+                            id="isActive"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                    )}
+                />
+                <Label htmlFor="isActive">Product is Active</Label>
+            </div>
             <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                     <Controller

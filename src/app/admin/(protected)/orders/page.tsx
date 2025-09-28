@@ -25,7 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Order, Supplier } from '@/lib/types';
+import type { Order, Supplier, Store } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -68,7 +68,7 @@ function getStatusBadge(status: 'Processing' | 'Shipped' | 'Delivered' | 'Confir
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderWithId[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -84,8 +84,8 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-
-  const supplierMap = useMemo(() => new Map(suppliers.map(s => [s.id, s])), [suppliers]);
+  
+  const storeMap = useMemo(() => new Map(stores.map(s => [s.id, s])), [stores]);
 
   useEffect(() => {
     const unsubscribeOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
@@ -94,13 +94,13 @@ export default function AdminOrdersPage() {
       setLoading(false);
     });
 
-    const unsubscribeSuppliers = onSnapshot(collection(db, 'suppliers'), (snapshot) => {
-        setSuppliers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supplier)));
+    const unsubscribeStores = onSnapshot(collection(db, 'stores'), (snapshot) => {
+        setStores(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Store)));
     });
 
     return () => {
         unsubscribeOrders();
-        unsubscribeSuppliers();
+        unsubscribeStores();
     };
   }, []);
   
@@ -265,6 +265,14 @@ export default function AdminOrdersPage() {
       setIsDetailsOpen(true);
   }
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+        title: "Copied!",
+        description: `${label} has been copied to your clipboard.`,
+    })
+}
+
   return (
     <>
     <Card>
@@ -297,7 +305,7 @@ export default function AdminOrdersPage() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Suppliers</SelectItem>
-                    {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.id}</SelectItem>)}
                 </SelectContent>
             </Select>
             <Popover>
@@ -346,66 +354,76 @@ export default function AdminOrdersPage() {
                 </TableRow>
               ))
             ) : (
-              filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
-                  <TableCell>{order.shippingAddress.name}</TableCell>
-                  <TableCell>
-                    <div className="font-medium">{order.resellerName || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground">{order.resellerId}</div>
-                  </TableCell>
-                  <TableCell>{new Date(order.date.seconds * 1000).toLocaleDateString()}</TableCell>
-                  <TableCell>₹{order.total.toLocaleString('en-IN')}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => viewOrderDetails(order)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openEmailModal(order)}>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Send Status Email
-                        </DropdownMenuItem>
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Notify
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem onClick={() => openNotifyModal(order)}>
-                                    <Copy className="mr-2 h-4 w-4" />
-                                    Copy Link
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openNotifyModal(order)}>
-                                    <ExternalLink className="mr-2 h-4 w-4" />
-                                    Launch WhatsApp
-                                </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Confirmed')}>Mark as Confirmed</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Shipped')}>Mark as Shipped</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Delivered')}>Mark as Delivered</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
-                            <Ban className="mr-2 h-4 w-4" />
-                            Cancel Order
-                        </DropdownMenuItem>
-                         <DropdownMenuItem className="text-destructive" onClick={() => deleteOrder(order.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Order
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredOrders.map((order) => {
+                const store = order.resellerName ? storeMap.get(order.resellerName) : null;
+                return (
+                    <TableRow key={order.id}>
+                    <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
+                    <TableCell>{order.shippingAddress.name}</TableCell>
+                    <TableCell>
+                        <div className="font-medium">{order.resellerName || 'N/A'}</div>
+                        {store?.creatorId && (
+                           <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                <span>{store.creatorId.slice(0,10)}...</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(store.creatorId, 'Creator Auth ID')}>
+                                    <Copy className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        )}
+                    </TableCell>
+                    <TableCell>{new Date(order.date.seconds * 1000).toLocaleDateString()}</TableCell>
+                    <TableCell>₹{order.total.toLocaleString('en-IN')}</TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell>
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => viewOrderDetails(order)}>View Details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openEmailModal(order)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Send Status Email
+                            </DropdownMenuItem>
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                    <MessageSquare className="mr-2 h-4 w-4" />
+                                    Notify
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuItem onClick={() => openNotifyModal(order)}>
+                                        <Copy className="mr-2 h-4 w-4" />
+                                        Copy Link
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openNotifyModal(order)}>
+                                        <ExternalLink className="mr-2 h-4 w-4" />
+                                        Launch WhatsApp
+                                    </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Confirmed')}>Mark as Confirmed</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Shipped')}>Mark as Shipped</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'Delivered')}>Mark as Delivered</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => updateOrderStatus(order.id, 'Cancelled')}>
+                                <Ban className="mr-2 h-4 w-4" />
+                                Cancel Order
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => deleteOrder(order.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Order
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                    </TableRow>
+                )
+            })
             )}
           </TableBody>
         </Table>
@@ -422,7 +440,7 @@ export default function AdminOrdersPage() {
             </DialogHeader>
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 {selectedOrder?.items.map(item => {
-                    const supplier = item.product.supplierId ? supplierMap.get(item.product.supplierId) : null;
+                    const supplierStore = item.product.supplierId ? storeMap.get(item.product.supplierId) : null;
                     return (
                         <div key={item.product.id} className="flex items-start gap-4">
                             <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
@@ -437,9 +455,9 @@ export default function AdminOrdersPage() {
                                     {item.size && <p>Size: {item.size}</p>}
                                     <p>Qty: {item.quantity}</p>
                                 </div>
-                                {supplier && (
+                                {supplierStore && (
                                     <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                       <User className="h-3 w-3"/> Supplier: {supplier.name}
+                                       <User className="h-3 w-3"/> Supplier: {supplierStore.id}
                                     </div>
                                 )}
                             </div>

@@ -45,6 +45,8 @@ const productSchema = z.object({
   qrCode: z.any().optional(),
   paymentButtonText: z.string().optional(),
   paymentLink: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  stock: z.coerce.number().optional(),
+  isActive: z.boolean().default(true),
 }).refine(data => data.currentPrice <= data.normalPrice, {
     message: "Current price cannot be greater than normal price",
     path: ["currentPrice"],
@@ -181,6 +183,8 @@ export function AddProductForm() {
         qrCodeUrl: qrCodeUrl,
         paymentButtonText: data.paymentButtonText,
         paymentLink: data.paymentLink,
+        stock: data.stock === undefined || data.stock === null ? null : data.stock, // Use null for infinity
+        isActive: data.isActive,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -195,6 +199,7 @@ export function AddProductForm() {
         name: '', description: '', normalPrice: 0, currentPrice: 0, category: '',
         isFreeShipping: true, shippingCharge: 0,
         sizes: [], colors: [], images: null, qrCode: null, paymentButtonText: '', paymentLink: '',
+        stock: undefined, isActive: true,
       });
       setImagePreviews([]);
       setQrCodePreview(null);
@@ -240,32 +245,38 @@ export function AddProductForm() {
                     </div>
                 </div>
                 
-                <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Controller
-                        name="category"
-                        control={control}
-                        render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                            {categories.map((mainCategory) => (
-                                <SelectGroup key={mainCategory.id}>
-                                <Label className="px-2 py-1.5 text-sm font-semibold">{mainCategory.name}</Label>
-                                {mainCategory.subCategories.map((subCategory) => (
-                                    <SelectItem key={subCategory.id} value={subCategory.id}>
-                                    {subCategory.name}
-                                    </SelectItem>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label>Category</Label>
+                        <Controller
+                            name="category"
+                            control={control}
+                            render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {categories.map((mainCategory) => (
+                                    <SelectGroup key={mainCategory.id}>
+                                    <Label className="px-2 py-1.5 text-sm font-semibold">{mainCategory.name}</Label>
+                                    {mainCategory.subCategories.map((subCategory) => (
+                                        <SelectItem key={subCategory.id} value={subCategory.id}>
+                                        {subCategory.name}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectGroup>
                                 ))}
-                                </SelectGroup>
-                            ))}
-                            </SelectContent>
-                        </Select>
-                        )}
-                    />
-                    {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+                                </SelectContent>
+                            </Select>
+                            )}
+                        />
+                        {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="stock">Stock Quantity</Label>
+                        <Input id="stock" type="number" {...register("stock")} placeholder="Leave blank for infinite"/>
+                    </div>
                 </div>
 
                 <div className="space-y-2">
@@ -373,7 +384,21 @@ export function AddProductForm() {
                     </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-between">
+                     <div className="flex items-center space-x-2">
+                        <Controller
+                            name="isActive"
+                            control={control}
+                            render={({ field }) => (
+                                <Switch
+                                    id="isActive"
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            )}
+                        />
+                        <Label htmlFor="isActive">Product is Active</Label>
+                    </div>
                     <div className="flex items-center space-x-2">
                         <Controller
                             name="isFreeShipping"
