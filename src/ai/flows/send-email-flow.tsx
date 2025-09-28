@@ -53,16 +53,28 @@ export async function sendOrderStatusEmail(input: EmailInput): Promise<string> {
 }
 
 
+// Schema for the withdrawal request data
+const WithdrawalRequestSchema = z.object({
+    creatorName: z.string(),
+    creatorContact: z.string(),
+    creatorUpiId: z.string(),
+    withdrawalAmount: z.number(),
+    currentBalance: z.number(),
+    requestDate: z.string(),
+});
+
 // Flow for sending withdrawal request email
 const sendWithdrawalRequestEmailFlow = ai.defineFlow(
   {
     name: 'sendWithdrawalRequestEmailFlow',
-    inputSchema: z.custom<WithdrawalRequest>(),
+    inputSchema: WithdrawalRequestSchema,
     outputSchema: z.string(),
   },
   async (request) => {
+    // 1. Render the React component to an HTML string
     const emailHtml = render(<WithdrawalRequestEmail request={request} />);
     
+    // 2. Call the generic sendEmailFlow with the rendered HTML
     return await sendEmailFlow({
       to: 'dropxindia.in@gmail.com',
       subject: `New Withdrawal Request from ${request.creatorName}`,
@@ -72,5 +84,6 @@ const sendWithdrawalRequestEmailFlow = ai.defineFlow(
 );
 
 export async function sendWithdrawalRequestEmail(request: WithdrawalRequest): Promise<string> {
+    // This function acts as the public API, calling the Genkit flow
     return await sendWithdrawalRequestEmailFlow(request);
 }
