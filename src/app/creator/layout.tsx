@@ -149,9 +149,9 @@ export default function CreatorLayout({
       const productsUnsubscribe = onSnapshot(productsQuery, (snapshot) => {
           setDraftCount(snapshot.size);
       });
-
+      
       const notifsQuery = query(
-          collection(db, 'creator_notifications'),
+          collection(db, 'creator_notifications'), 
           where('creatorId', '==', user.uid),
           where('read', '==', false)
       );
