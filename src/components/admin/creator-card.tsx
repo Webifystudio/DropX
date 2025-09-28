@@ -62,7 +62,9 @@ function ManageEarningsDialog({ creator, mode, children }: ManageEarningsDialogP
             toast({ title: 'Success', description: `Earnings updated successfully. New balance: ₹${newEarnings.toLocaleString()}` });
             setIsOpen(false);
             setAmount(0);
-            setShowEmailPrompt(true);
+            if (creator.email) {
+                setShowEmailPrompt(true);
+            }
         } catch (error) {
             toast({ title: 'Error', description: 'Failed to update earnings.', variant: 'destructive' });
         } finally {

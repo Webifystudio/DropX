@@ -2,8 +2,9 @@
 'use client';
 
 import withCreatorAuth from '@/components/auth/with-creator-auth';
-import { Card, CardContent } from '@/components/ui/card';
-import { Bell } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 function NotificationsSettingsPage() {
     
@@ -15,10 +16,32 @@ function NotificationsSettingsPage() {
             </div>
             
             <Card>
-                <CardContent className="py-20 text-center text-muted-foreground">
-                    <Bell className="h-16 w-16 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground">Under Development</h3>
-                    <p className="text-sm">We are working on this feature. Notification settings will be available here soon.</p>
+                <CardHeader>
+                    <CardTitle>Email Notifications</CardTitle>
+                    <CardDescription>Choose which email updates you'd like to receive.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between p-4 rounded-lg border">
+                        <div>
+                            <Label htmlFor="order-updates" className="font-semibold">Order Updates</Label>
+                            <p className="text-sm text-muted-foreground">Receive an email when an order is placed through your store.</p>
+                        </div>
+                        <Switch id="order-updates" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg border">
+                        <div>
+                            <Label htmlFor="payout-updates" className="font-semibold">Payouts</Label>
+                            <p className="text-sm text-muted-foreground">Get notified when a payout is processed to your account.</p>
+                        </div>
+                        <Switch id="payout-updates" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg border">
+                        <div>
+                            <Label htmlFor="weekly-summary" className="font-semibold">Weekly Summary</Label>
+                            <p className="text-sm text-muted-foreground">Receive a weekly summary of your store's performance.</p>
+                        </div>
+                        <Switch id="weekly-summary" />
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -26,5 +49,3 @@ function NotificationsSettingsPage() {
 }
 
 export default withCreatorAuth(NotificationsSettingsPage);
-
-    

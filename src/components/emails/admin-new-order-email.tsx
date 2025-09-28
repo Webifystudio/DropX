@@ -163,5 +163,3 @@ export const AdminNewOrderEmail = ({ order }: AdminNewOrderEmailProps) => {
     </Html>
   );
 };
-
-    

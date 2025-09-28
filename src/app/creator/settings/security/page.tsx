@@ -2,8 +2,10 @@
 'use client';
 
 import withCreatorAuth from '@/components/auth/with-creator-auth';
-import { Card, CardContent } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ShieldAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function SecuritySettingsPage() {
     
@@ -14,11 +16,20 @@ function SecuritySettingsPage() {
                 <p className="text-muted-foreground">Manage your account security settings.</p>
             </div>
             
+             <Alert variant="destructive">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Important Security Notice</AlertTitle>
+                <AlertDescription>
+                   For your protection, password changes and other sensitive security operations must be handled through our main site. Please contact support if you need to make changes to your login credentials.
+                </AlertDescription>
+            </Alert>
+
             <Card>
-                <CardContent className="py-20 text-center text-muted-foreground">
-                    <Lock className="h-16 w-16 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground">Under Development</h3>
-                    <p className="text-sm">We are currently building this feature. Advanced security settings will be available here soon.</p>
+                <CardHeader>
+                    <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
+                </CardHeader>
+                <CardContent className="text-center text-muted-foreground py-10">
+                    <p>This feature is coming soon.</p>
                 </CardContent>
             </Card>
         </div>
@@ -26,5 +37,3 @@ function SecuritySettingsPage() {
 }
 
 export default withCreatorAuth(SecuritySettingsPage);
-
-    
