@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, where, deleteDoc, doc, updateDoc, getDocs, runTransaction } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, deleteDoc, doc, updateDoc, getDocs, runTransaction, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -72,6 +72,21 @@ export default function AdminRequestsPage() {
       }
     }
   };
+
+  const createCreatorNotification = async (creatorId: string, title: string, description: string, status: 'paid' | 'rejected') => {
+      try {
+        await addDoc(collection(db, 'creator_notifications'), {
+            creatorId,
+            title,
+            description,
+            status,
+            date: Timestamp.now(),
+            read: false
+        });
+      } catch (error) {
+          console.error("Error creating creator notification: ", error);
+      }
+  }
   
   const handleMarkAsPaid = async (request: WithdrawalRequest) => {
     try {
@@ -99,6 +114,13 @@ export default function AdminRequestsPage() {
             transaction.update(requestRef, { status: 'paid' });
         });
 
+        await createCreatorNotification(
+            request.creatorId,
+            'Withdrawal Processed',
+            `Your withdrawal request of ₹${request.withdrawalAmount.toLocaleString('en-IN')} has been successfully paid.`,
+            'paid'
+        );
+
         toast({
             title: 'Payment Processed',
             description: `Withdrawal for ${request.creatorName} has been marked as paid.`,
@@ -113,10 +135,16 @@ export default function AdminRequestsPage() {
     }
   };
 
-  const handleRejectWithdrawal = async (requestId: string) => {
+  const handleRejectWithdrawal = async (request: WithdrawalRequest) => {
     if (window.confirm('Are you sure you want to reject and delete this withdrawal request?')) {
         try {
-            await deleteDoc(doc(db, 'withdrawal_requests', requestId));
+            await deleteDoc(doc(db, 'withdrawal_requests', request.id));
+             await createCreatorNotification(
+                request.creatorId,
+                'Withdrawal Rejected',
+                `Your withdrawal request of ₹${request.withdrawalAmount.toLocaleString('en-IN')} was rejected. Please contact support.`,
+                'rejected'
+            );
             toast({
                 title: 'Request Rejected',
                 description: 'The withdrawal request has been deleted.',
@@ -260,7 +288,7 @@ export default function AdminRequestsPage() {
                                     <Button size="sm" variant="outline" onClick={() => handleMarkAsPaid(request)}>
                                         <Check className="mr-1 h-4 w-4" /> Mark as Paid
                                     </Button>
-                                    <Button size="sm" variant="destructive" onClick={() => handleRejectWithdrawal(request.id)}>
+                                    <Button size="sm" variant="destructive" onClick={() => handleRejectWithdrawal(request)}>
                                         <X className="mr-1 h-4 w-4" /> Reject
                                     </Button>
                                 </div>

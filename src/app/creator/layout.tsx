@@ -60,14 +60,14 @@ const sidebarNavItems = [
         { href: '/creator/settings/payments', label: 'Payments & Payouts' },
         { href: '/creator/settings/shipping', label: 'Shipping' },
         { href: '/creator/settings/taxes', label: 'Taxes & Invoices' },
-        { href: '/creator/settings/notifications', label: 'Notifications' },
+        { href: '/creator/settings/notifications', label: 'Notifications', id: 'notifications-link' },
         { href: '/creator/settings/security', label: 'Security' },
     ]
   },
 ];
 
 
-function NavItem({ item, pathname, draftCount }: { item: any, pathname: string, draftCount: number }) {
+function NavItem({ item, pathname, draftCount, unreadNotifsCount }: { item: any, pathname: string, draftCount: number, unreadNotifsCount: number }) {
     const isParentActive = item.subItems && item.subItems.some((sub: any) => pathname.startsWith(sub.href));
 
     if (!item.subItems) {
@@ -115,6 +115,9 @@ function NavItem({ item, pathname, draftCount }: { item: any, pathname: string, 
                                 {subItem.id === 'drafts-link' && draftCount > 0 && (
                                     <Badge variant="secondary" className="h-5">{draftCount}</Badge>
                                 )}
+                                {subItem.id === 'notifications-link' && unreadNotifsCount > 0 && (
+                                    <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                )}
                             </Link>
                         );
                     })}
@@ -132,21 +135,35 @@ export default function CreatorLayout({
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const [draftCount, setDraftCount] = React.useState(0);
+  const [unreadNotifsCount, setUnreadNotifsCount] = React.useState(0);
 
   React.useEffect(() => {
       if (!user) return;
 
-      const q = query(
+      const productsQuery = query(
           collection(db, 'products'), 
           where('supplierId', '==', user.uid), // This assumes supplierId is creator UID, might need adjustment
           where('isActive', '==', false)
       );
 
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      const productsUnsubscribe = onSnapshot(productsQuery, (snapshot) => {
           setDraftCount(snapshot.size);
       });
 
-      return () => unsubscribe();
+      const notifsQuery = query(
+          collection(db, 'creator_notifications'),
+          where('creatorId', '==', user.uid),
+          where('read', '==', false)
+      );
+      
+      const notifsUnsubscribe = onSnapshot(notifsQuery, (snapshot) => {
+          setUnreadNotifsCount(snapshot.size);
+      });
+
+      return () => {
+          productsUnsubscribe();
+          notifsUnsubscribe();
+      }
   }, [user]);
 
   return (
@@ -159,7 +176,7 @@ export default function CreatorLayout({
         </div>
         <nav className="flex-grow flex flex-col gap-1 p-2">
           {sidebarNavItems.map((item) => (
-            <NavItem key={item.label} item={item} pathname={pathname} draftCount={draftCount} />
+            <NavItem key={item.label} item={item} pathname={pathname} draftCount={draftCount} unreadNotifsCount={unreadNotifsCount} />
           ))}
         </nav>
         <div className="mt-auto p-4 border-t">
@@ -191,7 +208,3 @@ export default function CreatorLayout({
     </div>
   );
 }
-
-    
-
-    

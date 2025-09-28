@@ -142,3 +142,13 @@ export type WithdrawalRequest = {
     requestDate: any; // Firestore Timestamp
     status: 'pending' | 'paid' | 'rejected';
 }
+
+export type CreatorNotification = {
+    id: string;
+    creatorId: string;
+    title: string;
+    description: string;
+    status: 'paid' | 'rejected';
+    date: any; // Firestore Timestamp
+    read: boolean;
+}

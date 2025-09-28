@@ -4,7 +4,7 @@
 import withCreatorAuth from '@/components/auth/with-creator-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, ShieldX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function SecuritySettingsPage() {
@@ -18,9 +18,9 @@ function SecuritySettingsPage() {
             
              <Alert variant="destructive">
                 <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>Important Security Notice</AlertTitle>
+                <AlertTitle>This Feature is Deprecated</AlertTitle>
                 <AlertDescription>
-                   For your protection, password changes and other sensitive security operations must be handled through our main site. Please contact support if you need to make changes to your login credentials.
+                   For your protection, password changes and other sensitive security operations must be handled through our main site or by contacting support. This section is no longer active.
                 </AlertDescription>
             </Alert>
 
@@ -29,7 +29,9 @@ function SecuritySettingsPage() {
                     <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center text-muted-foreground py-10">
-                    <p>This feature is coming soon.</p>
+                    <ShieldX className="h-16 w-16 mx-auto mb-4" />
+                    <p className="font-semibold text-foreground">Feature Unavailable</p>
+                    <p>This feature is not currently available.</p>
                 </CardContent>
             </Card>
         </div>
