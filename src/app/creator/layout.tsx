@@ -38,9 +38,10 @@ const sidebarNavItems = [
   },
   { 
     icon: CreditCard, 
-    label: 'Payouts / Withdrawal',
+    label: 'Payouts',
     subItems: [
-        { href: '/creator/payouts', label: 'Balance' },
+        { href: '/creator/payouts', label: 'Overview' },
+        { href: '/creator/payouts/balance', label: 'Balance' },
         { href: '/creator/payouts/request', label: 'Request Withdrawal' },
         { href: '/creator/payouts/history', label: 'Transaction History' },
         { href: '/creator/payouts/accounts', label: 'Payout Accounts' },
