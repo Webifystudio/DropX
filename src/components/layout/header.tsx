@@ -7,7 +7,7 @@ import { useCart } from '@/context/cart-context';
 import { useStore } from '@/context/store-context';
 import { useAuth } from '@/context/auth-context';
 import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function Header() {
@@ -18,10 +18,11 @@ export default function Header() {
 
   useEffect(() => {
     async function checkCreatorStatus() {
-      if (user) {
-        const storeDocRef = doc(db, 'stores', user.uid);
-        const docSnap = await getDoc(storeDocRef);
-        setIsCreator(docSnap.exists());
+      if (user && user.email) {
+        const storesRef = collection(db, 'stores');
+        const q = query(storesRef, where('creatorEmail', '==', user.email));
+        const querySnapshot = await getDocs(q);
+        setIsCreator(!querySnapshot.empty);
       } else {
         setIsCreator(false);
       }
