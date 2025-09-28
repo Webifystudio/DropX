@@ -3,7 +3,7 @@
 
 import withCreatorAuth from '@/components/auth/with-creator-auth';
 import { useAuth } from '@/context/auth-context';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -12,23 +12,23 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, where, doc, updateDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
-import type { Product, Store } from '@/lib/types';
+import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
-function CreatorProductsPage() {
+function CreatorDraftsPage() {
     const { user } = useAuth();
     const { toast } = useToast();
-    const [products, setProducts] = useState<Product[]>([]);
+    const [drafts, setDrafts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [storeId, setStoreId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!user) return;
         
-        async function fetchStoreAndProducts() {
+        async function fetchStoreAndDrafts() {
             const storesRef = collection(db, 'stores');
             const q = query(storesRef, where("creatorId", "==", user!.uid));
             const querySnapshot = await getDocs(q);
@@ -38,10 +38,10 @@ function CreatorProductsPage() {
                 const currentStoreId = storeDoc.id;
                 setStoreId(currentStoreId);
 
-                const productsQuery = query(collection(db, 'products'), where("supplierId", "==", currentStoreId), where("isActive", "==", true));
+                const productsQuery = query(collection(db, 'products'), where("supplierId", "==", currentStoreId), where("isActive", "==", false));
                 const unsubscribe = onSnapshot(productsQuery, (snapshot) => {
-                    const creatorProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-                    setProducts(creatorProducts);
+                    const creatorDrafts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+                    setDrafts(creatorDrafts);
                     setLoading(false);
                 });
                 return unsubscribe;
@@ -50,7 +50,7 @@ function CreatorProductsPage() {
             }
         }
 
-        const unsubscribePromise = fetchStoreAndProducts();
+        const unsubscribePromise = fetchStoreAndDrafts();
         
         return () => {
             unsubscribePromise.then(unsubscribe => {
@@ -65,7 +65,7 @@ function CreatorProductsPage() {
             await updateDoc(productRef, { isActive });
             toast({
                 title: 'Product Updated',
-                description: `Product is now ${isActive ? 'live' : 'a draft'}.`,
+                description: `Product has been ${isActive ? 'published' : 'moved back to drafts'}.`,
             });
         } catch (error) {
             toast({
@@ -77,18 +77,18 @@ function CreatorProductsPage() {
     };
     
     const deleteProduct = async (productId: string, productName: string) => {
-        if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+        if (window.confirm(`Are you sure you want to delete the draft "${productName}"?`)) {
           try {
             await deleteDoc(doc(db, 'products', productId));
             toast({
-              title: 'Product Deleted',
+              title: 'Draft Deleted',
               description: `"${productName}" has been successfully deleted.`,
             });
           } catch (error) {
             console.error("Error deleting product: ", error);
             toast({
               title: 'Error',
-              description: 'Failed to delete product.',
+              description: 'Failed to delete draft.',
               variant: 'destructive',
             });
           }
@@ -98,8 +98,8 @@ function CreatorProductsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold font-headline">All Products</h1>
-                <p className="text-muted-foreground">Manage your live product listings and their visibility.</p>
+                <h1 className="text-2xl font-bold font-headline">Drafts</h1>
+                <p className="text-muted-foreground">Manage your unpublished products. Publish them to make them live.</p>
             </div>
             
             <Card>
@@ -111,13 +111,13 @@ function CreatorProductsPage() {
                                 <TableHead>Price</TableHead>
                                 <TableHead>Stock</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Live</TableHead>
+                                <TableHead>Publish</TableHead>
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                Array.from({length: 5}).map((_, i) => (
+                                Array.from({length: 3}).map((_, i) => (
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -127,21 +127,20 @@ function CreatorProductsPage() {
                                         <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                                     </TableRow>
                                 ))
-                            ) : products.length > 0 ? (
-                                products.map(product => (
+                            ) : drafts.length > 0 ? (
+                                drafts.map(product => (
                                     <TableRow key={product.id}>
                                         <TableCell className="font-medium">{product.name}</TableCell>
                                         <TableCell>₹{product.currentPrice.toLocaleString('en-IN')}</TableCell>
                                         <TableCell>{product.stock ?? '∞'}</TableCell>
                                         <TableCell>
-                                            <Badge variant={product.isActive ? 'default' : 'secondary'}>
-                                                {product.isActive ? 'Active' : 'Draft'}
-                                            </Badge>
+                                            <Badge variant="secondary">Draft</Badge>
                                         </TableCell>
                                         <TableCell>
                                             <Switch
                                                 checked={product.isActive}
                                                 onCheckedChange={(checked) => handleStatusChange(product.id, checked)}
+                                                aria-label="Publish Product"
                                             />
                                         </TableCell>
                                         <TableCell>
@@ -153,7 +152,7 @@ function CreatorProductsPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem asChild><Link href={`/creator/products/edit/${product.id}`}>Edit</Link></DropdownMenuItem>
+                                                     <DropdownMenuItem asChild><Link href={`/creator/products/edit/${product.id}`}>Edit</Link></DropdownMenuItem>
                                                     <DropdownMenuItem 
                                                         className="text-destructive"
                                                         onClick={() => deleteProduct(product.id, product.name)}
@@ -168,7 +167,7 @@ function CreatorProductsPage() {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-24 text-center">
-                                        No active products found.
+                                        You have no drafts.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -181,6 +180,6 @@ function CreatorProductsPage() {
     );
 }
 
-export default withCreatorAuth(CreatorProductsPage);
+export default withCreatorAuth(CreatorDraftsPage);
 
     

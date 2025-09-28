@@ -2,31 +2,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
 import { useForm, Controller, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { collection, addDoc, doc, setDoc, Timestamp, onSnapshot, getDocs, query, where } from "firebase/firestore"
+import { collection, addDoc, doc, setDoc, Timestamp, getDocs, query, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
 import { Plus, Trash } from "lucide-react"
 import Image from "next/image"
-import type { Supplier, Product, Store } from "@/lib/types"
+import type { Product } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 import { Card, CardContent } from "../ui/card"
 
@@ -191,8 +181,8 @@ export function AddProductForm() {
 
       await addDoc(collection(db, "products"), productData);
       toast({
-          title: "Product Added!",
-          description: `${data.name} has been successfully added.`,
+          title: `Product ${data.isActive ? 'Published' : 'Saved as Draft'}!`,
+          description: `${data.name} has been successfully saved.`,
       });
 
       reset({
@@ -216,10 +206,15 @@ export function AddProductForm() {
     }
   }
 
+  const handleFormSubmit = (isActive: boolean) => {
+    setValue('isActive', isActive);
+    handleSubmit(onSubmit)();
+  };
+
   return (
     <Card>
         <CardContent>
-             <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
+             <form onSubmit={(e) => e.preventDefault()} className="grid gap-6 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="name">Product Title</Label>
                     <Input id="name" {...register("name")} />
@@ -385,20 +380,6 @@ export function AddProductForm() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                     <div className="flex items-center space-x-2">
-                        <Controller
-                            name="isActive"
-                            control={control}
-                            render={({ field }) => (
-                                <Switch
-                                    id="isActive"
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            )}
-                        />
-                        <Label htmlFor="isActive">Product is Active</Label>
-                    </div>
                     <div className="flex items-center space-x-2">
                         <Controller
                             name="isFreeShipping"
@@ -414,16 +395,19 @@ export function AddProductForm() {
                         <Label htmlFor="isFreeShipping">Free Shipping</Label>
                     </div>
                     {!isFreeShipping && (
-                        <div className="flex-grow space-y-2">
+                        <div className="flex-grow space-y-2 ml-4">
                             <Label htmlFor="shippingCharge">Shipping Charge (₹)</Label>
                             <Input id="shippingCharge" type="number" {...register("shippingCharge")} />
                             {errors.shippingCharge && <p className="text-sm text-destructive">{errors.shippingCharge.message}</p>}
                         </div>
                     )}
                 </div>
-                <div className="flex justify-end">
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Adding Product..." : "Add Product"}
+                <div className="flex justify-end gap-2">
+                     <Button type="button" variant="outline" onClick={() => handleFormSubmit(false)} disabled={isSubmitting}>
+                        Save Draft
+                    </Button>
+                    <Button type="button" onClick={() => handleFormSubmit(true)} disabled={isSubmitting}>
+                        {isSubmitting ? "Publishing..." : "Publish"}
                     </Button>
                 </div>
             </form>
@@ -431,3 +415,5 @@ export function AddProductForm() {
     </Card>
   )
 }
+
+    

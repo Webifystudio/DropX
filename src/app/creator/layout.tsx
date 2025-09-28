@@ -2,7 +2,7 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import { LayoutGrid, Package, Settings, LogOut, Home, Archive, CreditCard, ChevronRight } from 'lucide-react';
+import { LayoutGrid, Package, Settings, LogOut, Home, Archive, CreditCard, ChevronRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Badge } from '@/components/ui/badge';
+import type { Product } from '@/lib/types';
 
 const sidebarNavItems = [
   { 
@@ -23,7 +27,7 @@ const sidebarNavItems = [
     subItems: [
         { href: '/creator/products', label: 'All Products' },
         { href: '/creator/products/add', label: 'Add Product' },
-        { href: '/creator/products/drafts', label: 'Drafts' },
+        { href: '/creator/products/drafts', label: 'Drafts', id: 'drafts-link' },
         { href: '/creator/products/bulk-upload', label: 'Bulk Upload' },
     ]
   },
@@ -62,7 +66,7 @@ const sidebarNavItems = [
 ];
 
 
-function NavItem({ item, pathname }: { item: any, pathname: string }) {
+function NavItem({ item, pathname, draftCount }: { item: any, pathname: string, draftCount: number }) {
     const isParentActive = item.subItems && item.subItems.some((sub: any) => pathname.startsWith(sub.href));
 
     if (!item.subItems) {
@@ -102,11 +106,14 @@ function NavItem({ item, pathname }: { item: any, pathname: string }) {
                                 key={subItem.label}
                                 href={subItem.href}
                                 className={cn(
-                                    'rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:text-primary',
+                                    'flex items-center justify-between rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:text-primary',
                                     isSubActive && 'bg-muted text-primary font-medium'
                                 )}
                             >
                                 {subItem.label}
+                                {subItem.id === 'drafts-link' && draftCount > 0 && (
+                                    <Badge variant="secondary" className="h-5">{draftCount}</Badge>
+                                )}
                             </Link>
                         );
                     })}
@@ -123,6 +130,23 @@ export default function CreatorLayout({
 }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
+  const [draftCount, setDraftCount] = React.useState(0);
+
+  React.useEffect(() => {
+      if (!user) return;
+
+      const q = query(
+          collection(db, 'products'), 
+          where('supplierId', '==', user.uid), // This assumes supplierId is creator UID, might need adjustment
+          where('isActive', '==', false)
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+          setDraftCount(snapshot.size);
+      });
+
+      return () => unsubscribe();
+  }, [user]);
 
   return (
     <div className="flex min-h-screen bg-muted/40">
@@ -134,7 +158,7 @@ export default function CreatorLayout({
         </div>
         <nav className="flex-grow flex flex-col gap-1 p-2">
           {sidebarNavItems.map((item) => (
-            <NavItem key={item.label} item={item} pathname={pathname} />
+            <NavItem key={item.label} item={item} pathname={pathname} draftCount={draftCount} />
           ))}
         </nav>
         <div className="mt-auto p-4 border-t">
@@ -166,3 +190,5 @@ export default function CreatorLayout({
     </div>
   );
 }
+
+    
