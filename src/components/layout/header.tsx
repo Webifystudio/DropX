@@ -2,13 +2,32 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, Search, Rocket } from 'lucide-react';
+import { ShoppingCart, Search, Rocket, LayoutGrid } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useStore } from '@/context/store-context';
+import { useAuth } from '@/context/auth-context';
+import { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function Header() {
   const { cartCount } = useCart();
   const { store } = useStore();
+  const { user } = useAuth();
+  const [isCreator, setIsCreator] = useState(false);
+
+  useEffect(() => {
+    async function checkCreatorStatus() {
+      if (user) {
+        const storeDocRef = doc(db, 'stores', user.uid);
+        const docSnap = await getDoc(storeDocRef);
+        setIsCreator(docSnap.exists());
+      } else {
+        setIsCreator(false);
+      }
+    }
+    checkCreatorStatus();
+  }, [user]);
   
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
@@ -19,9 +38,15 @@ export default function Header() {
           </Link>
           
           <div className="flex items-center space-x-2">
-             <Link href="/creator" className="relative p-2">
-              <Rocket className="h-6 w-6 text-foreground" />
-            </Link>
+             {isCreator ? (
+                <Link href="/creator/dashboard" className="relative p-2">
+                  <LayoutGrid className="h-6 w-6 text-foreground" />
+                </Link>
+             ) : (
+                <Link href="/creator" className="relative p-2">
+                  <Rocket className="h-6 w-6 text-foreground" />
+                </Link>
+             )}
             <Link href="/search" className="relative p-2">
               <Search className="h-6 w-6 text-foreground" />
             </Link>
@@ -39,5 +64,3 @@ export default function Header() {
     </header>
   );
 }
-
-    
