@@ -16,10 +16,10 @@ import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Package, Truck, CheckCircle, ShoppingCart, RefreshCcw } from 'lucide-react';
+import { Package, Truck, CheckCircle, ShoppingCart, RefreshCcw, DollarSign } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import type { Order } from '@/lib/types';
+import type { Order, Creator } from '@/lib/types';
 
 
 const storeSchema = z.object({
@@ -40,6 +40,7 @@ function CreatorDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [store, setStore] = useState<{ id: string; logoUrl?: string } | null>(null);
+  const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
   const [origin, setOrigin] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
@@ -63,50 +64,65 @@ function CreatorDashboard() {
   const storeName = watch('name');
 
   useEffect(() => {
-    if (!user || !user.email) return;
+    if (!user) return;
 
+    let unsubscribeStore: () => void = () => {};
     let unsubscribeOrders: () => void = () => {};
+    let unsubscribeCreator: () => void = () => {};
 
-    async function fetchStoreAndOrders() {
-      const storesRef = collection(db, 'stores');
-      const storeQuery = query(storesRef, where('creatorEmail', '==', user!.email));
-      
-      const unsubscribeStore = onSnapshot(storeQuery, (storeSnapshot) => {
-        if (!storeSnapshot.empty) {
-          const storeDoc = storeSnapshot.docs[0];
-          const data = storeDoc.data();
-          setStore({ id: data.id, logoUrl: data.logoUrl });
-          setValue('name', data.id);
-
-          const ordersQuery = query(collection(db, 'orders'), where('resellerId', '==', data.id));
-          unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
-            const creatorOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-            setOrders(creatorOrders.sort((a,b) => b.date.seconds - a.date.seconds));
-
-            const stats: OrderStats = { total: 0, processing: 0, shipped: 0, delivered: 0 };
-            snapshot.forEach(doc => {
-                const order = doc.data() as Order;
-                stats.total++;
-                if (order.status === 'Processing' || order.status === 'Confirmed') stats.processing++;
-                if (order.status === 'Shipped') stats.shipped++;
-                if (order.status === 'Delivered') stats.delivered++;
-            });
-            setOrderStats(stats);
-            setLoadingOrders(false);
-          });
+    // Listen for creator profile changes (for earnings)
+    const creatorQuery = query(collection(db, 'creators'), where('creatorId', '==', user.uid));
+    unsubscribeCreator = onSnapshot(creatorQuery, (snapshot) => {
+        if (!snapshot.empty) {
+            const creatorDoc = snapshot.docs[0];
+            setCreator({ id: creatorDoc.id, ...creatorDoc.data() } as Creator);
         }
-        setLoading(false);
-      });
-      
-      return () => {
-        unsubscribeStore();
-        unsubscribeOrders();
-      }
-    }
-    
-    fetchStoreAndOrders();
+    });
 
+    // Listen for store and associated orders
+    const storesRef = collection(db, 'stores');
+    const storeQuery = query(storesRef, where('creatorId', '==', user.uid));
+    
+    unsubscribeStore = onSnapshot(storeQuery, (storeSnapshot) => {
+      setLoading(true);
+      setLoadingOrders(true);
+
+      if (!storeSnapshot.empty) {
+        const storeDoc = storeSnapshot.docs[0];
+        const data = storeDoc.data();
+        setStore({ id: data.id, logoUrl: data.logoUrl });
+        setValue('name', data.id);
+
+        // Now that we have the store, listen for its orders
+        const ordersQuery = query(collection(db, 'orders'), where('resellerId', '==', data.id));
+        unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
+          const creatorOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+          setOrders(creatorOrders.sort((a,b) => b.date.seconds - a.date.seconds));
+
+          const stats: OrderStats = { total: 0, processing: 0, shipped: 0, delivered: 0 };
+          snapshot.forEach(doc => {
+              const order = doc.data() as Order;
+              stats.total++;
+              if (order.status === 'Processing' || order.status === 'Confirmed') stats.processing++;
+              if (order.status === 'Shipped') stats.shipped++;
+              if (order.status === 'Delivered') stats.delivered++;
+          });
+          setOrderStats(stats);
+          setLoadingOrders(false);
+        });
+      } else {
+        setLoadingOrders(false);
+      }
+      setLoading(false);
+    });
+    
+    return () => {
+      unsubscribeStore();
+      unsubscribeOrders();
+      unsubscribeCreator();
+    }
   }, [user, setValue]);
+
 
   const onSubmit = async (data: StoreFormValues) => {
     if (!user) return;
@@ -163,9 +179,9 @@ function CreatorDashboard() {
 
   const statCards = [
       { title: 'Total Orders', value: orderStats.total, icon: ShoppingCart, color: 'text-blue-500' },
+      { title: 'Total Earnings', value: `₹${(creator?.totalEarnings || 0).toLocaleString('en-IN')}`, icon: DollarSign, color: 'text-green-500' },
       { title: 'Pending', value: orderStats.processing, icon: RefreshCcw, color: 'text-yellow-500' },
       { title: 'Shipped', value: orderStats.shipped, icon: Truck, color: 'text-purple-500' },
-      { title: 'Delivered', value: orderStats.delivered, icon: CheckCircle, color: 'text-green-500' },
   ];
 
   if (loading) {

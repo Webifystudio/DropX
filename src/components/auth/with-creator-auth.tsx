@@ -23,18 +23,14 @@ export default function withCreatorAuth<P extends object>(
         return;
       }
       
-      // Optional: Add role check if you have roles for creators
-      // if (user.role !== 'creator') {
-      //     router.replace('/');
-      //     return;
-      // }
-
+      // The user is logged in, so they are authorized to see creator pages.
+      // The dashboard itself will handle logic for fetching store data.
       setIsAuthorized(true);
 
     }, [user, loading, router]);
 
-    if (!isAuthorized) {
-        return null; 
+    if (loading || !isAuthorized) {
+        return null; // or a loading spinner
     }
     
     return <WrappedComponent {...props} />;
