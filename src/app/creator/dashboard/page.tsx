@@ -94,7 +94,7 @@ function CreatorDashboard() {
         setValue('name', data.id);
 
         // Now that we have the store, listen for its orders
-        const ordersQuery = query(collection(db, 'orders'), where('resellerId', '==', data.id));
+        const ordersQuery = query(collection(db, 'orders'), where('resellerId', '==', user.uid));
         unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
           const creatorOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
           setOrders(creatorOrders.sort((a,b) => b.date.seconds - a.date.seconds));
@@ -144,6 +144,54 @@ function CreatorDashboard() {
               <Skeleton className="h-96 w-full" />
           </div>
       )
+  }
+
+  if (!store) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+         <Card className="w-full max-w-lg">
+            <CardHeader>
+                <CardTitle>Welcome, Creator!</CardTitle>
+                <CardDescription>
+                    Let's set up your storefront. Choose a unique name for your store. This will be your public URL.
+                </CardDescription>
+            </CardHeader>
+            <form onSubmit={handleSubmit(async (data) => {
+                if (!user) return;
+                try {
+                    const storeData = {
+                        id: data.name,
+                        creatorId: user.uid,
+                        creatorEmail: user.email,
+                        logoUrl: '',
+                    };
+                    await setDoc(doc(db, 'stores', data.name), storeData);
+                    toast({ title: "Store Created!", description: "Your storefront is now live." });
+                    // The onSnapshot listener will update the state automatically
+                } catch (error) {
+                    console.error("Error creating store: ", error);
+                    toast({ title: "Error", description: "This store name might already be taken.", variant: 'destructive' });
+                }
+            })}>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Store Name</Label>
+                        <div className="flex items-center">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">{origin}/</span>
+                            <Input id="name" {...register('name')} className="ml-1" placeholder="your-store-name" />
+                        </div>
+                        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Creating...' : 'Create My Store'}
+                    </Button>
+                </CardFooter>
+            </form>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -220,3 +268,5 @@ function CreatorDashboard() {
 }
 
 export default withCreatorAuth(CreatorDashboard);
+
+    
