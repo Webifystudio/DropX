@@ -92,11 +92,10 @@ export type Notification = {
 };
 
 export type Store = {
-  id: string; // This will be the subdomain/path
+  id: string; // This will be the unique store name / path
   creatorId: string;
   creatorEmail: string;
   logoUrl?: string;
-  logo?: string;
 };
 
 export type Creator = {
