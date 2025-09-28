@@ -19,6 +19,7 @@ import Image from "next/image"
 import type { Product } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 import { Card, CardContent } from "../ui/card"
+import { Switch } from "@/components/ui/switch"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -415,5 +416,3 @@ export function AddProductForm() {
     </Card>
   )
 }
-
-    
