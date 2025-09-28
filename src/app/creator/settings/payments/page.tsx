@@ -124,5 +124,3 @@ function PaymentsSettingsPage() {
 }
 
 export default withCreatorAuth(PaymentsSettingsPage);
-
-    
