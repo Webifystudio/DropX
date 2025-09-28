@@ -113,6 +113,7 @@ export type Creator = {
     avatarUrl: string;
     isVerified: boolean;
     totalEarnings?: number;
+    upiId?: string;
 };
 
 export type HeroSectionConfig = {
@@ -129,3 +130,12 @@ export type SupportMessage = {
     text: string;
     time: string;
 };
+
+export type WithdrawalRequest = {
+    creatorName: string;
+    creatorContact: string;
+    creatorUpiId: string;
+    withdrawalAmount: number;
+    currentBalance: number;
+    requestDate: string;
+}
