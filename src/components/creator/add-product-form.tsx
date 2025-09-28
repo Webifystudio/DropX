@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -21,6 +20,7 @@ import type { Product } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
 import { Card, CardContent } from "../ui/card"
 import { Switch } from "@/components/ui/switch"
+import { useRouter } from "next/navigation"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -46,12 +46,17 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>
 
+type AddProductFormProps = {
+  product?: Product;
+}
 
-export function AddProductForm() {
+export function AddProductForm({ product }: AddProductFormProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const { toast } = useToast()
+  const isEditMode = !!product;
   
   const {
     register,
@@ -68,7 +73,7 @@ export function AddProductForm() {
 
   useEffect(() => {
     async function fetchStoreId() {
-        if (user) {
+        if (user && !isEditMode) {
             const storesRef = collection(db, 'stores');
             const q = query(storesRef, where("creatorId", "==", user.uid));
             const querySnapshot = await getDocs(q);
@@ -79,7 +84,25 @@ export function AddProductForm() {
         }
     }
     fetchStoreId();
-  }, [user, setValue]);
+  }, [user, setValue, isEditMode]);
+  
+  useEffect(() => {
+    if (product) {
+        reset({
+            ...product,
+            sizes: product.sizes?.map(s => ({ value: s })) || [],
+            colors: product.colors || [],
+        });
+        if (product.images) {
+            setImagePreviews(product.images);
+        }
+    } else {
+        reset({
+             sizes: [], colors: [],
+        });
+        setImagePreviews([]);
+    }
+  }, [product, reset]);
 
 
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
@@ -127,14 +150,14 @@ export function AddProductForm() {
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
-    let imageUrls: string[] = [];
+    let imageUrls: string[] = product?.images || [];
 
     try {
       if (data.images && data.images.length > 0) {
         const filesToUpload = Array.from(data.images);
         const uploadPromises = filesToUpload.map(file => uploadToImgBB(file as File));
         imageUrls = await Promise.all(uploadPromises);
-      } else {
+      } else if (!isEditMode) {
          toast({
             title: "Image Required",
             description: "Please upload at least one product image.",
@@ -156,30 +179,28 @@ export function AddProductForm() {
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
-        qrCodeUrl: '',
-        paymentButtonText: '',
-        paymentLink: '',
+        qrCodeUrl: product?.qrCodeUrl || '',
+        paymentButtonText: product?.paymentButtonText || '',
+        paymentLink: product?.paymentLink || '',
         stock: data.stock === undefined || data.stock === null ? null : data.stock,
-        isActive: false, // Always save as draft
-        createdAt: Timestamp.now(),
+        isActive: isEditMode ? product.isActive : false,
+        createdAt: isEditMode && product.createdAt ? product.createdAt : Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
-
-      await addDoc(collection(db, "products"), productData);
-      toast({
-          title: `Product Submitted for Review!`,
-          description: `${data.name} has been sent to the admin for approval.`,
-      });
-
-      const currentSupplierId = getValues('supplierId');
-      reset({
-        name: '', description: '', normalPrice: 0, currentPrice: 0, category: '',
-        supplierId: currentSupplierId,
-        isFreeShipping: true, shippingCharge: 0,
-        sizes: [], colors: [], images: null,
-        stock: undefined,
-      });
-      setImagePreviews([]);
+      
+      if (isEditMode) {
+        const productRef = doc(db, 'products', product.id);
+        await setDoc(productRef, productData, { merge: true });
+        toast({ title: "Product Updated!", description: `${data.name} has been successfully updated.` });
+        router.push('/creator/products/drafts');
+      } else {
+        await addDoc(collection(db, "products"), productData);
+        toast({
+            title: `Product Submitted for Review!`,
+            description: `${data.name} has been sent to the admin for approval.`,
+        });
+        router.push('/creator/products/drafts');
+      }
 
     } catch (error) {
       console.error("Error saving product: ", error)
@@ -378,7 +399,7 @@ export function AddProductForm() {
                 </div>
                 <div className="flex justify-end gap-2">
                     <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Submitting..." : "Submit for Review"}
+                        {isSubmitting ? "Submitting..." : isEditMode ? "Update Product" : "Submit for Review"}
                     </Button>
                 </div>
             </form>

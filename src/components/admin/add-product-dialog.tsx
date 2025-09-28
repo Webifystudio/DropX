@@ -21,12 +21,12 @@ import { useForm, Controller, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { collection, addDoc, doc, setDoc, Timestamp, onSnapshot } from "firebase/firestore"
+import { collection, addDoc, doc, setDoc, Timestamp, onSnapshot, getDocs, query, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
-import { Plus, Trash } from "lucide-react"
+import { Plus, Trash, Copy } from "lucide-react"
 import Image from "next/image"
-import type { Supplier, Product } from "@/lib/types"
+import type { Supplier, Product, Store, Creator } from "@/lib/types"
 
 const productSchema = z.object({
   name: z.string().min(3, "Product name is required"),
@@ -67,15 +67,16 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [qrCodePreview, setQrCodePreview] = useState<string | null>(null);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [creator, setCreator] = useState<Creator | null>(null);
   const { toast } = useToast()
   const isEditMode = !!product;
   
   useEffect(() => {
     if (isOpen) {
-      const unsubscribe = onSnapshot(collection(db, 'suppliers'), (snapshot) => {
-        const suppliersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supplier));
-        setSuppliers(suppliersData);
+      const unsubscribe = onSnapshot(collection(db, 'stores'), (snapshot) => {
+        const storesData = snapshot.docs.map(doc => ({ ...doc.data() } as Store));
+        setStores(storesData);
       });
       return () => unsubscribe();
     }
@@ -93,6 +94,16 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
   });
 
   useEffect(() => {
+    async function fetchCreatorData(creatorId: string) {
+        const q = query(collection(db, 'creators'), where('creatorId', '==', creatorId));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            setCreator(snapshot.docs[0].data() as Creator);
+        } else {
+            setCreator(null);
+        }
+    }
+
     if (isOpen && product) {
         reset({
             ...product,
@@ -105,29 +116,24 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
         if (product.qrCodeUrl) {
             setQrCodePreview(product.qrCodeUrl);
         }
+        const store = stores.find(s => s.id === product.supplierId);
+        if (store) {
+            fetchCreatorData(store.creatorId);
+        }
+
     } else if (isOpen && !product) {
         reset({
-            name: '',
-            description: '',
-            normalPrice: 0,
-            currentPrice: 0,
-            category: '',
-            supplierId: '',
-            isFreeShipping: true,
-            shippingCharge: 0,
-            sizes: [{ value: 'M' }],
-            colors: [{ name: 'Default', code: '#000000' }],
-            images: null,
-            qrCode: null,
-            paymentButtonText: '',
-            paymentLink: '',
-            stock: undefined,
-            isActive: true,
+            name: '', description: '', normalPrice: 0, currentPrice: 0, category: '',
+            supplierId: '', isFreeShipping: true, shippingCharge: 0,
+            sizes: [{ value: 'M' }], colors: [{ name: 'Default', code: '#000000' }],
+            images: null, qrCode: null, paymentButtonText: '', paymentLink: '',
+            stock: undefined, isActive: true,
         });
         setImagePreviews([]);
         setQrCodePreview(null);
+        setCreator(null);
     }
-  }, [isOpen, product, reset]);
+  }, [isOpen, product, reset, stores]);
 
 
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
@@ -140,7 +146,15 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
     name: "colors"
   });
 
-  const isFreeShipping = watch("isFreeShipping")
+  const isFreeShipping = watch("isFreeShipping");
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({
+            title: "Copied!",
+            description: "Creator Auth ID has been copied to your clipboard.",
+        })
+    }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -186,10 +200,8 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
     let qrCodeUrl = product?.qrCodeUrl || '';
 
     try {
-      // Check if new images have been selected in the file input
       if (data.images && data.images.length > 0) {
         const filesToUpload = Array.from(data.images);
-        // If there are files, upload them and overwrite the existing imageUrls
         const uploadPromises = filesToUpload.map(file => uploadToImgBB(file as File));
         imageUrls = await Promise.all(uploadPromises);
       }
@@ -213,7 +225,7 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
         qrCodeUrl: qrCodeUrl,
         paymentButtonText: data.paymentButtonText,
         paymentLink: data.paymentLink,
-        stock: data.stock === undefined || data.stock === null ? null : data.stock, // Use null for infinity
+        stock: data.stock === undefined || data.stock === null ? null : data.stock,
         isActive: data.isActive,
         createdAt: isEditMode && product.createdAt ? product.createdAt : Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -322,9 +334,9 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
                                 <SelectValue placeholder="Select a supplier" />
                             </SelectTrigger>
                             <SelectContent>
-                                {suppliers.map((supplier) => (
-                                    <SelectItem key={supplier.id} value={supplier.id}>
-                                    {supplier.name}
+                                {stores.map((store) => (
+                                    <SelectItem key={store.id} value={store.id}>
+                                    {store.id}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -333,6 +345,18 @@ export function AddProductDialog({ product, children, isOpen, onOpenChange }: Ad
                     />
                 </div>
             </div>
+
+            {creator && (
+                 <div className="space-y-2">
+                    <Label>Creator Auth ID</Label>
+                    <div className="flex items-center gap-2">
+                        <Input value={creator.creatorId} readOnly disabled />
+                        <Button type="button" size="icon" variant="outline" onClick={() => copyToClipboard(creator.creatorId)}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <div className="space-y-2">
                 <Label htmlFor="stock">Stock Quantity</Label>

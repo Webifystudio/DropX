@@ -4,8 +4,8 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import type { Product, Review } from '@/lib/types';
-import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, Check } from 'lucide-react';
+import type { Product, Review, Store as StoreType, Creator } from '@/lib/types';
+import { ArrowLeft, Heart, Share, Star, ShoppingBag, Truck, Store, Check, CheckCircle } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { useState, useEffect, useCallback } from 'react';
@@ -16,6 +16,9 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductImageGalleryClient } from './product-image-gallery-client';
+import { doc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '../ui/skeleton';
 
 type ProductViewProps = {
   product: Product;
@@ -36,16 +39,50 @@ export function ProductView({ product }: ProductViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const fetchReviews = async () => {
+  const [store, setStore] = useState<StoreType | null>(null);
+  const [creator, setCreator] = useState<Creator | null>(null);
+  const [loadingStore, setLoadingStore] = useState(true);
+
+
+  const fetchReviews = useCallback(async () => {
     setLoadingReviews(true);
     const fetchedReviews = await getReviews(product.id);
     setReviews(fetchedReviews);
     setLoadingReviews(false);
-  };
+  }, [product.id]);
 
   useEffect(() => {
     fetchReviews();
-  }, [product.id]);
+  }, [fetchReviews]);
+  
+  useEffect(() => {
+    async function fetchStoreAndCreator() {
+        if (product.supplierId) {
+            try {
+                const storeRef = doc(db, 'stores', product.supplierId);
+                const storeSnap = await getDoc(storeRef);
+                if (storeSnap.exists()) {
+                    const storeData = storeSnap.data() as StoreType;
+                    setStore(storeData);
+
+                    const creatorQuery = query(collection(db, 'creators'), where('creatorId', '==', storeData.creatorId));
+                    const creatorSnap = await getDocs(creatorQuery);
+                    if (!creatorSnap.empty) {
+                        setCreator(creatorSnap.docs[0].data() as Creator);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching store or creator data:", error);
+            } finally {
+                setLoadingStore(false);
+            }
+        } else {
+            setLoadingStore(false);
+        }
+    }
+    fetchStoreAndCreator();
+}, [product.supplierId]);
+
 
   const handleAddToCart = () => {
       addToCart(product, 1, selectedColor, selectedSize);
@@ -110,7 +147,29 @@ export function ProductView({ product }: ProductViewProps) {
         
         <ProductImageGalleryClient images={product.images || []} productName={product.name} />
 
-        <div className="mt-4 bg-background p-4 rounded-t-2xl">
+        {loadingStore ? (
+            <div className="p-4 bg-background"><Skeleton className="h-12 w-full" /></div>
+        ) : store && (
+            <div className="p-4 bg-background border-b">
+                <div className="flex items-center gap-3">
+                    <Avatar>
+                        <AvatarImage src={store.logoUrl} />
+                        <AvatarFallback>{store.id.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <div className="flex items-center gap-1.5">
+                            <p className="font-bold">{store.id}</p>
+                            {creator?.isVerified && (
+                                <CheckCircle className="h-4 w-4 text-green-500 fill-green-100" />
+                            )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Official Store</p>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        <div className="bg-background p-4 rounded-t-2xl">
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-2xl font-bold font-headline">{product.name}</h1>

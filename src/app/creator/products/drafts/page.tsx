@@ -6,15 +6,14 @@ import { useAuth } from '@/context/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where, doc, updateDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, deleteDoc, getDocs } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2, Edit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
@@ -23,7 +22,6 @@ function CreatorDraftsPage() {
     const { toast } = useToast();
     const [drafts, setDrafts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [storeId, setStoreId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!user) return;
@@ -36,7 +34,6 @@ function CreatorDraftsPage() {
             if (!querySnapshot.empty) {
                 const storeDoc = querySnapshot.docs[0];
                 const currentStoreId = storeDoc.id;
-                setStoreId(currentStoreId);
 
                 const productsQuery = query(collection(db, 'products'), where("supplierId", "==", currentStoreId), where("isActive", "==", false));
                 const unsubscribe = onSnapshot(productsQuery, (snapshot) => {
@@ -59,23 +56,6 @@ function CreatorDraftsPage() {
         };
     }, [user]);
 
-    const handleStatusChange = async (productId: string, isActive: boolean) => {
-        const productRef = doc(db, 'products', productId);
-        try {
-            await updateDoc(productRef, { isActive });
-            toast({
-                title: 'Product Updated',
-                description: `Product has been ${isActive ? 'published' : 'moved back to drafts'}.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to update product status.',
-                variant: 'destructive',
-            });
-        }
-    };
-    
     const deleteProduct = async (productId: string, productName: string) => {
         if (window.confirm(`Are you sure you want to delete the draft "${productName}"?`)) {
           try {
@@ -99,7 +79,7 @@ function CreatorDraftsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold font-headline">Drafts</h1>
-                <p className="text-muted-foreground">Manage your unpublished products. Publish them to make them live.</p>
+                <p className="text-muted-foreground">These products have been submitted and are awaiting admin approval.</p>
             </div>
             
             <Card>
@@ -111,7 +91,6 @@ function CreatorDraftsPage() {
                                 <TableHead>Price</TableHead>
                                 <TableHead>Stock</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Publish</TableHead>
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -122,8 +101,7 @@ function CreatorDraftsPage() {
                                         <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-12 rounded-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-28 rounded-full" /></TableCell>
                                         <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                                     </TableRow>
                                 ))
@@ -134,14 +112,7 @@ function CreatorDraftsPage() {
                                         <TableCell>₹{product.currentPrice.toLocaleString('en-IN')}</TableCell>
                                         <TableCell>{product.stock ?? '∞'}</TableCell>
                                         <TableCell>
-                                            <Badge variant="secondary">Draft</Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Switch
-                                                checked={product.isActive}
-                                                onCheckedChange={(checked) => handleStatusChange(product.id, checked)}
-                                                aria-label="Publish Product"
-                                            />
+                                            <Badge variant="secondary">Pending Approval</Badge>
                                         </TableCell>
                                         <TableCell>
                                             <DropdownMenu>
@@ -152,7 +123,9 @@ function CreatorDraftsPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                     <DropdownMenuItem asChild><Link href={`/creator/products/edit/${product.id}`}>Edit</Link></DropdownMenuItem>
+                                                     <DropdownMenuItem asChild>
+                                                        <Link href={`/creator/products/edit/${product.id}`}><Edit className="mr-2 h-4 w-4" />Edit</Link>
+                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem 
                                                         className="text-destructive"
                                                         onClick={() => deleteProduct(product.id, product.name)}
@@ -166,8 +139,8 @@ function CreatorDraftsPage() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        You have no drafts.
+                                    <TableCell colSpan={5} className="h-24 text-center">
+                                        You have no products awaiting approval.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -181,5 +154,3 @@ function CreatorDraftsPage() {
 }
 
 export default withCreatorAuth(CreatorDraftsPage);
-
-    

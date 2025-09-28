@@ -2,7 +2,7 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import { LayoutGrid, Package, Settings, LogOut, Home, Archive, CreditCard, ChevronRight, FileText } from 'lucide-react';
+import { LayoutGrid, Package, Settings, LogOut, Home, Archive, CreditCard, ChevronRight, FileText, ShoppingCart as CreatorShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,11 @@ const sidebarNavItems = [
     href: '/creator/dashboard', 
     icon: Home, 
     label: 'Overview' 
+  },
+  { 
+    href: '/creator/orders',
+    icon: CreatorShoppingCart,
+    label: 'Orders'
   },
   { 
     icon: Package, 
@@ -136,35 +141,44 @@ export default function CreatorLayout({
   const pathname = usePathname();
   const [draftCount, setDraftCount] = React.useState(0);
   const [unreadNotifsCount, setUnreadNotifsCount] = React.useState(0);
+  const [storeId, setStoreId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-      if (!user) return;
+    if (!user) return;
 
-      const productsQuery = query(
-          collection(db, 'products'), 
-          where('supplierId', '==', user.uid), // This assumes supplierId is creator UID, might need adjustment
-          where('isActive', '==', false)
-      );
+    const productsQuery = query(
+        collection(db, 'products'), 
+        where('supplierId', '==', user.uid),
+        where('isActive', '==', false)
+    );
 
-      const productsUnsubscribe = onSnapshot(productsQuery, (snapshot) => {
-          setDraftCount(snapshot.size);
-      });
-      
-      const notifsQuery = query(
-          collection(db, 'creator_notifications'), 
-          where('creatorId', '==', user.uid),
-          where('read', '==', false)
-      );
-      
-      const notifsUnsubscribe = onSnapshot(notifsQuery, (snapshot) => {
-          setUnreadNotifsCount(snapshot.size);
-      });
+    const productsUnsubscribe = onSnapshot(productsQuery, (snapshot) => {
+        setDraftCount(snapshot.size);
+    });
+    
+    const notifsQuery = query(
+        collection(db, 'creator_notifications'), 
+        where('creatorId', '==', user.uid),
+        where('read', '==', false)
+    );
+    
+    const notifsUnsubscribe = onSnapshot(notifsQuery, (snapshot) => {
+        setUnreadNotifsCount(snapshot.size);
+    });
 
-      return () => {
-          productsUnsubscribe();
-          notifsUnsubscribe();
-      }
-  }, [user]);
+    const storesQuery = query(collection(db, 'stores'), where("creatorId", "==", user.uid));
+    const storesUnsubscribe = onSnapshot(storesQuery, (snapshot) => {
+        if (!snapshot.empty) {
+            setStoreId(snapshot.docs[0].id);
+        }
+    });
+
+    return () => {
+        productsUnsubscribe();
+        notifsUnsubscribe();
+        storesUnsubscribe();
+    }
+}, [user]);
 
   return (
     <div className="flex min-h-screen bg-muted/40">
