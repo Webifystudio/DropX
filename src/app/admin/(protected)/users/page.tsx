@@ -9,15 +9,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Creator } from '@/lib/types';
 import { CreatorCard } from '@/components/admin/creator-card';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, UserSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { FindUidDialog } from '@/components/admin/find-uid-dialog';
 
 export default function AdminUsersPage() {
     const [creators, setCreators] = useState<Creator[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);
+    const [isFindUidDialogOpen, setIsFindUidDialogOpen] = useState(false);
 
     useEffect(() => {
         const q = query(collection(db, 'creators'), orderBy('name', 'asc'));
@@ -78,7 +80,11 @@ export default function AdminUsersPage() {
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Button onClick={() => setIsDialogOpen(true)}>
+                     <Button variant="outline" onClick={() => setIsFindUidDialogOpen(true)}>
+                        <UserSearch className="mr-2 h-4 w-4" />
+                        Find ID
+                    </Button>
+                    <Button onClick={() => setIsAddEditDialogOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add Creator
                     </Button>
@@ -91,8 +97,14 @@ export default function AdminUsersPage() {
             </div>
 
             <AddEditCreatorDialog
-                isOpen={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
+                isOpen={isAddEditDialogOpen}
+                onOpenChange={setIsAddEditDialogOpen}
+            />
+
+            <FindUidDialog
+                isOpen={isFindUidDialogOpen}
+                onOpenChange={setIsFindUidDialogOpen}
+                creators={creators}
             />
         </div>
     )
