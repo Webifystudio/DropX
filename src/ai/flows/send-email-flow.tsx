@@ -57,20 +57,20 @@ export async function sendOrderStatusEmail(input: EmailInput): Promise<string> {
 const sendWithdrawalRequestEmailFlow = ai.defineFlow(
   {
     name: 'sendWithdrawalRequestEmailFlow',
-    inputSchema: z.custom<WithdrawalRequest>(),
+    inputSchema: z.object({ request: z.custom<WithdrawalRequest>() }),
     outputSchema: z.string(),
   },
-  async (requestData) => {
-    const emailHtml = render(<WithdrawalRequestEmail request={requestData} />);
+  async ({ request }) => {
+    const emailHtml = render(<WithdrawalRequestEmail request={request} />);
     
     return await sendEmailFlow({
       to: 'dropxindia.in@gmail.com',
-      subject: `New Withdrawal Request from ${requestData.creatorName}`,
+      subject: `New Withdrawal Request from ${request.creatorName}`,
       html: emailHtml,
     });
   }
 );
 
 export async function sendWithdrawalRequestEmail(request: WithdrawalRequest): Promise<string> {
-    return await sendWithdrawalRequestEmailFlow(request);
+    return await sendWithdrawalRequestEmailFlow({ request });
 }
