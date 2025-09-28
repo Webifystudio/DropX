@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Creator } from '@/lib/types';
-import { CheckCircle, Copy, Plus, Minus, Mail } from 'lucide-react';
+import { CheckCircle, Copy, Plus, Minus, Mail, Edit } from 'lucide-react';
 import { AddEditCreatorDialog } from './add-edit-creator-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -61,6 +61,7 @@ function ManageEarningsDialog({ creator, mode, children }: ManageEarningsDialogP
             await updateDoc(creatorRef, { totalEarnings: newEarnings });
             toast({ title: 'Success', description: `Earnings updated successfully. New balance: ₹${newEarnings.toLocaleString()}` });
             setIsOpen(false);
+            setAmount(0);
             setShowEmailPrompt(true);
         } catch (error) {
             toast({ title: 'Error', description: 'Failed to update earnings.', variant: 'destructive' });
@@ -150,26 +151,27 @@ function ManageEarningsDialog({ creator, mode, children }: ManageEarningsDialogP
 
 export function CreatorCard({ creator }: CreatorCardProps) {
     const { toast } = useToast();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-    const copyId = () => {
-        navigator.clipboard.writeText(creator.id);
+    const copyToClipboard = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
         toast({
             title: "Copied!",
-            description: "Creator ID has been copied to your clipboard.",
+            description: `${label} has been copied to your clipboard.`,
         })
     }
 
   return (
+    <>
     <Card className="rounded-2xl relative group/card flex flex-col">
-        <AddEditCreatorDialog creator={creator}>
-            <button className="absolute top-2 right-2 z-10 p-2 rounded-full bg-background/50 backdrop-blur-sm text-foreground opacity-0 group-hover/card:opacity-100 transition-opacity text-xs">
-                Edit
-            </button>
-        </AddEditCreatorDialog>
+        <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 p-2 rounded-full bg-background/50 backdrop-blur-sm text-foreground opacity-0 group-hover/card:opacity-100 transition-opacity text-xs" onClick={() => setIsEditDialogOpen(true)}>
+            <Edit className="h-4 w-4" />
+        </Button>
+
         <CardContent className="p-4 flex flex-col items-center text-center flex-grow">
             <div className="relative w-24 h-24 mb-3">
                 <Image
-                    src={creator.avatarUrl}
+                    src={creator.avatarUrl || 'https://i.ibb.co/CVCm52w/logo.png'}
                     alt={creator.name}
                     fill
                     className="rounded-full object-cover border-2 border-primary/50"
@@ -180,10 +182,12 @@ export function CreatorCard({ creator }: CreatorCardProps) {
                 <h3 className="font-semibold text-lg">{creator.name}</h3>
                 {creator.isVerified && <CheckCircle className="h-5 w-5 text-green-500 fill-green-100" />}
             </div>
-             <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground cursor-pointer" onClick={copyId}>
-                <span>ID: {creator.id.slice(0, 8)}...</span>
-                <Copy className="h-3 w-3" />
-            </div>
+             {creator.creatorId && (
+                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground cursor-pointer" onClick={() => copyToClipboard(creator.creatorId, 'Creator Auth ID')}>
+                    <span>UID: {creator.creatorId.slice(0, 8)}...</span>
+                    <Copy className="h-3 w-3" />
+                </div>
+            )}
             <p className="text-sm text-muted-foreground mt-2 text-center h-10 overflow-hidden">{creator.description}</p>
         </CardContent>
         <div className="bg-muted/50 p-4 rounded-b-2xl mt-auto">
@@ -205,5 +209,11 @@ export function CreatorCard({ creator }: CreatorCardProps) {
             </div>
         </div>
     </Card>
+    <AddEditCreatorDialog
+        creator={creator}
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+    />
+    </>
   );
 }

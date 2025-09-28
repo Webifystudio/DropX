@@ -100,6 +100,7 @@ export type Store = {
 
 export type Creator = {
     id: string;
+    creatorId: string; // Firebase Auth UID
     name: string;
     email?: string;
     contact: string;

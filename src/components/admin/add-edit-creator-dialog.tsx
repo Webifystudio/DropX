@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +25,7 @@ import type { Creator } from '@/lib/types';
 import Image from 'next/image';
 
 const creatorSchema = z.object({
+  creatorId: z.string().min(5, "Creator Auth ID is required"),
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address").optional().or(z.literal('')),
   contact: z.string().min(10, "Contact number is required"),
@@ -42,17 +42,18 @@ type CreatorFormValues = z.infer<typeof creatorSchema>;
 
 type AddEditCreatorDialogProps = {
   creator?: Creator;
-  children?: React.ReactNode;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
-export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AddEditCreatorDialog({ creator, isOpen, onOpenChange }: AddEditCreatorDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<CreatorFormValues>({
     resolver: zodResolver(creatorSchema),
     defaultValues: {
+      creatorId: '',
       name: '',
       email: '',
       contact: '',
@@ -66,30 +67,25 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
   });
   
   useEffect(() => {
-    if (creator) {
-      form.reset({
-        name: creator.name,
-        email: creator.email,
-        contact: creator.contact,
-        title: creator.title,
-        description: creator.description,
-        followers: creator.followers,
-        posts: creator.posts,
-        isVerified: creator.isVerified,
-        totalEarnings: creator.totalEarnings || 0,
-      });
-    } else {
-        form.reset({
-          name: '',
-          email: '',
-          contact: '',
-          title: '',
-          description: '',
-          followers: 0,
-          posts: 0,
-          isVerified: false,
-          totalEarnings: 0,
-        });
+    if (isOpen) {
+        if (creator) {
+          form.reset({
+            ...creator,
+          });
+        } else {
+            form.reset({
+              creatorId: '',
+              name: '',
+              email: '',
+              contact: '',
+              title: '',
+              description: '',
+              followers: 0,
+              posts: 0,
+              isVerified: false,
+              totalEarnings: 0,
+            });
+        }
     }
   }, [creator, form, isOpen]);
 
@@ -124,6 +120,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
       }
       
       const creatorData = {
+        creatorId: data.creatorId,
         name: data.name,
         email: data.email,
         contact: data.contact,
@@ -144,7 +141,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
         toast({ title: "Creator Added!", description: `${data.name} has been added.` });
       }
       
-      setIsOpen(false);
+      onOpenChange(false);
     } catch (error) {
       console.error("Error saving creator: ", error);
       toast({ title: "Error", description: "Failed to save creator profile.", variant: "destructive" });
@@ -154,10 +151,7 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children || <Button>Add Creator</Button>}
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{creator ? 'Edit' : 'Add'} Creator</DialogTitle>
@@ -166,6 +160,11 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+             <div className="space-y-2">
+                <Label htmlFor="creatorId">Creator Auth ID</Label>
+                <Input id="creatorId" {...form.register("creatorId")} placeholder="Firebase Auth UID" />
+                {form.formState.errors.creatorId && <p className="text-sm text-destructive">{form.formState.errors.creatorId.message}</p>}
+            </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -224,12 +223,12 @@ export function AddEditCreatorDialog({ creator, children }: AddEditCreatorDialog
             </div>
             
             <div className="flex items-center space-x-2">
-                <Switch id="isVerified" {...form.register("isVerified")} />
+                <Switch id="isVerified" onCheckedChange={(checked) => form.setValue('isVerified', checked)} checked={form.watch('isVerified')} />
                 <Label htmlFor="isVerified">Verified Creator</Label>
             </div>
 
             <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? (creator ? "Saving..." : "Adding...") : (creator ? "Save Changes" : "Add Creator")}
                 </Button>

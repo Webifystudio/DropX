@@ -10,11 +10,14 @@ import type { Creator } from '@/lib/types';
 import { CreatorCard } from '@/components/admin/creator-card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 export default function AdminUsersPage() {
     const [creators, setCreators] = useState<Creator[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         const q = query(collection(db, 'creators'), orderBy('name', 'asc'));
@@ -35,7 +38,8 @@ export default function AdminUsersPage() {
             return creators;
         }
         return creators.filter(creator =>
-            creator.id.toLowerCase().includes(searchQuery.toLowerCase())
+            creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (creator.email && creator.email.toLowerCase().includes(searchQuery.toLowerCase()))
         );
     }, [searchQuery, creators]);
 
@@ -68,13 +72,16 @@ export default function AdminUsersPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           type="search"
-                          placeholder="Search by Creator ID..."
+                          placeholder="Search by name or email..."
                           className="pl-10 w-full"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <AddEditCreatorDialog />
+                    <Button onClick={() => setIsDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Creator
+                    </Button>
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -82,6 +89,11 @@ export default function AdminUsersPage() {
                     <CreatorCard key={creator.id} creator={creator} />
                 ))}
             </div>
+
+            <AddEditCreatorDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+            />
         </div>
     )
 }

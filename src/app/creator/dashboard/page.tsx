@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDocs, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -37,7 +37,7 @@ type OrderStats = {
 }
 
 function CreatorDashboard() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [store, setStore] = useState<{ id: string; logoUrl?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,37 +70,42 @@ function CreatorDashboard() {
     async function fetchStoreAndOrders() {
       const storesRef = collection(db, 'stores');
       const storeQuery = query(storesRef, where('creatorEmail', '==', user!.email));
-      const storeSnapshot = await getDocs(storeQuery);
+      
+      const unsubscribeStore = onSnapshot(storeQuery, (storeSnapshot) => {
+        if (!storeSnapshot.empty) {
+          const storeDoc = storeSnapshot.docs[0];
+          const data = storeDoc.data();
+          setStore({ id: data.id, logoUrl: data.logoUrl });
+          setValue('name', data.id);
 
-      if (!storeSnapshot.empty) {
-        const storeDoc = storeSnapshot.docs[0];
-        const data = storeDoc.data();
-        setStore({ id: data.id, logoUrl: data.logoUrl });
-        setValue('name', data.id);
+          const ordersQuery = query(collection(db, 'orders'), where('resellerId', '==', data.id));
+          unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
+            const creatorOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+            setOrders(creatorOrders.sort((a,b) => b.date.seconds - a.date.seconds));
 
-        const ordersQuery = query(collection(db, 'orders'), where('resellerId', '==', data.id));
-        unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
-          const creatorOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-          setOrders(creatorOrders);
-
-          const stats: OrderStats = { total: 0, processing: 0, shipped: 0, delivered: 0 };
-          snapshot.forEach(doc => {
-              const order = doc.data() as Order;
-              stats.total++;
-              if (order.status === 'Processing' || order.status === 'Confirmed') stats.processing++;
-              if (order.status === 'Shipped') stats.shipped++;
-              if (order.status === 'Delivered') stats.delivered++;
+            const stats: OrderStats = { total: 0, processing: 0, shipped: 0, delivered: 0 };
+            snapshot.forEach(doc => {
+                const order = doc.data() as Order;
+                stats.total++;
+                if (order.status === 'Processing' || order.status === 'Confirmed') stats.processing++;
+                if (order.status === 'Shipped') stats.shipped++;
+                if (order.status === 'Delivered') stats.delivered++;
+            });
+            setOrderStats(stats);
+            setLoadingOrders(false);
           });
-          setOrderStats(stats);
-          setLoadingOrders(false);
-        });
+        }
+        setLoading(false);
+      });
+      
+      return () => {
+        unsubscribeStore();
+        unsubscribeOrders();
       }
-      setLoading(false);
     }
     
     fetchStoreAndOrders();
 
-    return () => unsubscribeOrders();
   }, [user, setValue]);
 
   const onSubmit = async (data: StoreFormValues) => {
@@ -108,9 +113,13 @@ function CreatorDashboard() {
 
     try {
       let logoUrl = store?.logoUrl || '';
-      const imgbbApiKey = "81b665cd5c10e982384fcdec4b410fba";
+      const imgbbApiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
       if (data.logo && data.logo.length > 0) {
+        if (!imgbbApiKey) {
+            toast({ title: "Error", description: "IMGBB API Key is not configured.", variant: "destructive" });
+            return;
+        }
         const file = data.logo[0];
         const formData = new FormData();
         formData.append("image", file);
@@ -138,8 +147,6 @@ function CreatorDashboard() {
       const storeDocRef = doc(db, 'stores', data.name);
       await setDoc(storeDocRef, storeData);
       
-      setStore({ id: data.name, logoUrl });
-
       toast({
         title: 'Store Updated!',
         description: 'Your store information has been saved.',
@@ -163,46 +170,72 @@ function CreatorDashboard() {
 
   if (loading) {
       return (
-          <div className="container mx-auto px-4 py-8 space-y-8">
-              <div className="flex justify-between items-center">
-                  <div>
-                      <Skeleton className="h-8 w-64 mb-2" />
-                      <Skeleton className="h-4 w-48" />
-                  </div>
-                  <Skeleton className="h-10 w-24" />
+          <div className="space-y-8">
+              <div className="space-y-2">
+                  <Skeleton className="h-8 w-64" />
+                  <Skeleton className="h-4 w-48" />
               </div>
-              <Card>
-                  <CardHeader>
-                      <Skeleton className="h-6 w-32 mb-2" />
-                      <Skeleton className="h-4 w-full" />
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                      <div className="space-y-2">
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-10 w-full" />
-                      </div>
-                       <div className="space-y-2">
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-10 w-full" />
-                      </div>
-                      <Skeleton className="h-10 w-32" />
-                  </CardContent>
-              </Card>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {Array.from({length: 4}).map((_,i) => <Skeleton key={i} className="h-28 w-full" />)}
+              </div>
+              <Skeleton className="h-96 w-full" />
           </div>
       )
   }
+  
+  if (!store) {
+     return (
+      <div>
+        <h1 className="text-3xl font-bold font-headline mb-2">Setup Your Store</h1>
+        <p className="text-muted-foreground mb-8">
+            Create your storefront to start selling. Choose a unique name for your store's URL.
+        </p>
+         <Card>
+            <CardHeader>
+            <CardTitle>Create Your Store</CardTitle>
+            <CardDescription>
+                This name will be your unique store URL. It can't be changed later.
+            </CardDescription>
+            </CardHeader>
+            <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="space-y-2">
+                <Label htmlFor="name">Store Name (URL)</Label>
+                <Input
+                    id="name"
+                    {...register('name')}
+                    placeholder="e.g., my-awesome-store"
+                />
+                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                {origin && storeName && (
+                    <p className="text-sm text-muted-foreground">
+                    Your store will be available at: {origin}/<span className="font-medium text-primary">{storeName}</span>
+                    </p>
+                )}
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="logo">Store Logo (Optional)</Label>
+                <Input id="logo" type="file" {...register('logo')} />
+                </div>
+                <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Create Store'}
+                </Button>
+            </form>
+            </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Creator Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user?.email}!</p>
+            <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
+            <p className="text-muted-foreground">An overview of your store's performance.</p>
         </div>
-        <Button onClick={signOut}>Sign Out</Button>
-      </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map(card => (
             <Card key={card.title}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -216,102 +249,54 @@ function CreatorDashboard() {
           ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-            <Card>
-                <CardHeader>
-                <CardTitle>Your Store</CardTitle>
-                <CardDescription>
-                    Setup your storefront name and logo. The store name will be used for your unique URL.
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="space-y-2">
-                    <Label htmlFor="name">Store Name (URL)</Label>
-                    <Input
-                        id="name"
-                        {...register('name')}
-                        placeholder="e.g., my-awesome-store"
-                        disabled={!!store}
-                    />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                    {origin && storeName && (
-                        <p className="text-sm text-muted-foreground">
-                        Your store will be available at: {origin}/<span className="font-medium text-primary">{storeName}</span>
-                        </p>
-                    )}
+        <Card>
+            <CardHeader>
+                <CardTitle>Recent Orders</CardTitle>
+                <CardDescription>A list of the 10 most recent orders.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loadingOrders ? (
+                            Array.from({length: 5}).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            orders.slice(0, 10).map(order => (
+                                 <TableRow key={order.id}>
+                                    <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
+                                    <TableCell>{new Date(order.date.seconds * 1000).toLocaleDateString()}</TableCell>
+                                    <TableCell>{order.shippingAddress.name}</TableCell>
+                                    <TableCell>₹{order.total.toLocaleString('en-IN')}</TableCell>
+                                    <TableCell><Badge variant={order.status === 'Delivered' ? 'default' : 'secondary'}>{order.status}</Badge></TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+                 {orders.length === 0 && !loadingOrders && (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <ShoppingCart className="h-12 w-12 mx-auto mb-4" />
+                        <p>No orders yet.</p>
                     </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="logo">Store Logo (Optional)</Label>
-                    <Input id="logo" type="file" {...register('logo')} />
-                    {store?.logoUrl && <img src={store.logoUrl} alt="Store logo" className="mt-4 h-20 w-20 object-cover rounded-md" />}
-                    </div>
-                    <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Save Settings'}
-                    </Button>
-                </form>
-                </CardContent>
-            </Card>
-            
-            {store && (
-                <Card className="mt-8">
-                    <CardHeader>
-                        <CardTitle>Your Store Link</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Your store is live! You can access it here:</p>
-                        <Link href={`/${store.id}`} className="text-primary font-bold hover:underline" target="_blank">
-                            {origin}/{store.id}
-                        </Link>
-                    </CardContent>
-                </Card>
-            )}
-        </div>
-        <div className="lg:col-span-2">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Recent Orders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loadingOrders ? (
-                                Array.from({length: 5}).map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                orders.slice(0, 10).map(order => (
-                                     <TableRow key={order.id}>
-                                        <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
-                                        <TableCell>{new Date(order.date.seconds * 1000).toLocaleDateString()}</TableCell>
-                                        <TableCell>{order.shippingAddress.name}</TableCell>
-                                        <TableCell>₹{order.total.toLocaleString('en-IN')}</TableCell>
-                                        <TableCell><Badge variant={order.status === 'Delivered' ? 'default' : 'secondary'}>{order.status}</Badge></TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
-      </div>
+                 )}
+            </CardContent>
+        </Card>
     </div>
   );
 }
