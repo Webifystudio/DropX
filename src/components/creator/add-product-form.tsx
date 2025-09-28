@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { collection, addDoc, doc, setDoc, Timestamp, getDocs, query, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { categories } from "@/lib/data"
-import { Plus, Trash } from "lucide-react"
+import { Plus, Trash, Lock } from "lucide-react"
 import Image from "next/image"
 import type { Product } from "@/lib/types"
 import { useAuth } from "@/context/auth-context"
@@ -154,10 +154,6 @@ export function AddProductForm() {
         setIsSubmitting(false);
         return;
       }
-
-      if (data.qrCode && data.qrCode.length > 0) {
-        qrCodeUrl = await uploadToImgBB(data.qrCode[0]);
-      }
       
       const productData = {
         name: data.name,
@@ -171,9 +167,9 @@ export function AddProductForm() {
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
-        qrCodeUrl: qrCodeUrl,
-        paymentButtonText: data.paymentButtonText,
-        paymentLink: data.paymentLink,
+        qrCodeUrl: '', // Locked for creators
+        paymentButtonText: '', // Locked for creators
+        paymentLink: '', // Locked for creators
         stock: data.stock === undefined || data.stock === null ? null : data.stock, // Use null for infinity
         isActive: data.isActive,
         createdAt: Timestamp.now(),
@@ -347,36 +343,28 @@ export function AddProductForm() {
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 border-t pt-4">
+                <div className="relative grid grid-cols-1 gap-4 border-t pt-4">
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg">
+                        <Lock className="h-8 w-8 text-muted-foreground" />
+                        <p className="mt-2 text-sm font-semibold text-muted-foreground">Admin-only Feature</p>
+                        <p className="text-xs text-muted-foreground">Contact admin to enable direct payments.</p>
+                    </div>
                     <Label className="font-semibold">Payment Options (Optional)</Label>
                     <div className="space-y-2">
                         <Label htmlFor="qrCode">Payment QR Code</Label>
                         <Input 
                             id="qrCode" 
-                            type="file" 
-                            {...register("qrCode")} 
-                            onChange={handleQrCodeChange}
-                            accept="image/*"
+                            type="file"
+                            disabled
                         />
-                        {qrCodePreview && (
-                            <div className="relative h-20 w-20 mt-2">
-                                <Image
-                                    src={qrCodePreview}
-                                    alt="QR Code Preview"
-                                    fill
-                                    className="rounded-md object-cover"
-                                />
-                            </div>
-                        )}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="paymentButtonText">Payment Button Text</Label>
-                        <Input id="paymentButtonText" {...register("paymentButtonText")} placeholder="e.g., Pay with UPI" />
+                        <Input id="paymentButtonText" placeholder="e.g., Pay with UPI" disabled />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="paymentLink">Payment Link</Label>
-                        <Input id="paymentLink" {...register("paymentLink")} placeholder="e.g., https://pay.google.com/..." />
-                        {errors.paymentLink && <p className="text-sm text-destructive">{errors.paymentLink.message}</p>}
+                        <Input id="paymentLink" placeholder="e.g., https://pay.google.com/..." disabled/>
                     </div>
                 </div>
 
@@ -416,3 +404,5 @@ export function AddProductForm() {
     </Card>
   )
 }
+
+    

@@ -37,6 +37,7 @@ const sidebarNavItems = [
     subItems: [
         { href: '/creator/inventory', label: 'Stock Overview' },
         { href: '/creator/inventory/low-stock', label: 'Low Stock' },
+        { href: '/creator/inventory/out-of-stock', label: 'Out of Stock' },
         { href: '/creator/inventory/adjustments', label: 'Stock Adjustments' },
     ]
   },
