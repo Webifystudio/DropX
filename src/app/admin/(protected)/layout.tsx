@@ -61,10 +61,10 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50 relative">
-      <aside className="w-20 flex-col bg-card border-r flex">
-        <div className="flex-shrink-0 flex items-center justify-center h-16">
-          <LayoutGrid className="h-7 w-7 text-primary" />
+    <div className="flex min-h-screen bg-background relative">
+      <aside className="w-16 flex-col bg-card-foreground flex text-primary-foreground">
+        <div className="flex-shrink-0 flex items-center justify-center h-16 border-b border-gray-700">
+          <LayoutGrid className="h-7 w-7" />
         </div>
         <nav className="flex-grow flex flex-col items-center space-y-2 py-4">
           {sidebarNavItems.map((item) => {
@@ -74,19 +74,18 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  'relative p-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors',
-                  isActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'text-muted-foreground'
+                  'relative p-3 rounded-lg hover:bg-primary/80 transition-colors',
+                  isActive ? 'bg-primary text-primary-foreground' : ''
                 )}
                 aria-label={item.label}
               >
                 <item.icon className="h-6 w-6" />
                 {item.label === 'Notifications' && unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
-                    {unreadCount}
+                  <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-destructive">
                   </span>
                 )}
                  {item.label === 'Orders' && unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-destructive border-2 border-card"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive"></span>
                 )}
               </Link>
             )
@@ -102,23 +101,6 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col">
-        <header className="h-16 flex items-center justify-between px-6 border-b bg-card">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-10 pr-10 w-full"
-            />
-          </div>
-           <AddProductDialog>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Product
-                </Button>
-            </AddProductDialog>
-        </header>
-
         <main className="flex-1 p-6">
           {children}
         </main>

@@ -5,11 +5,13 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, where, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, ShoppingBag, ArrowUp, ArrowDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { DollarSign, ShoppingBag, ArrowUp, ArrowDown, MoreHorizontal, Calendar } from 'lucide-react';
 import { RevenueChart } from '@/components/admin/revenue-chart';
+import { PlatformChart } from '@/components/admin/platform-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 
 export default function AdminDashboard() {
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -47,18 +49,22 @@ export default function AdminDashboard() {
     return () => unsubscribe();
   }, []);
 
-  const overviewData = [
-    { title: 'Total Revenue', value: `₹${totalRevenue.toLocaleString('en-IN')}`, icon: DollarSign, change: '+20.1% from last month' },
-    { title: 'Total Profit', value: `₹${totalProfit.toLocaleString('en-IN')}`, icon: DollarSign, change: '+18.1% from last month' },
-    { title: 'Sales', value: `+${monthlySales.toLocaleString('en-IN')}`, icon: ShoppingBag, change: '+12.2% from last month' },
-    { title: 'Total Orders', value: `${totalOrders}`, icon: ShoppingBag, change: '+5 from last month' },
-];
+  const StatCard = ({ title, value, subValue }: { title: string; value: string; subValue: string }) => (
+    <div>
+        <p className="text-sm text-muted-foreground">{title}</p>
+        <p className="text-3xl font-bold">{value}</p>
+        <p className="text-xs text-muted-foreground">{subValue}</p>
+    </div>
+  );
 
 
   if (loading) {
       return (
           <div className="space-y-6">
-              <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-10 w-32" />
+              </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                   {Array.from({length: 4}).map((_, i) => (
                       <Card key={i}>
@@ -73,39 +79,63 @@ export default function AdminDashboard() {
                       </Card>
                   ))}
               </div>
-              <Card>
-                  <CardHeader>
-                      <Skeleton className="h-6 w-1/3" />
-                  </CardHeader>
-                  <CardContent>
-                      <Skeleton className="w-full h-[350px]" />
-                  </CardContent>
-              </Card>
+              <div className="grid lg:grid-cols-2 gap-6">
+                 <Card><CardContent className="p-6"><Skeleton className="w-full h-[350px]" /></CardContent></Card>
+                 <Card><CardContent className="p-6"><Skeleton className="w-full h-[350px]" /></CardContent></Card>
+              </div>
           </div>
       )
   }
 
   return (
     <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {overviewData.map((item, index) => (
-                <Card key={item.title}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                        <item.icon className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{item.value}</div>
-                        <p className="text-xs text-muted-foreground">{item.change}</p>
-                    </CardContent>
-                </Card>
-            ))}
+        <div className="flex justify-between items-start">
+            <div>
+                <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                <p className="text-muted-foreground text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Jun 1 - Aug 21, 2024</span>
+                </p>
+            </div>
+            <div className="flex items-center gap-8">
+                <StatCard title="EOI Sent" value={totalOrders.toString()} subValue={`₹${monthlySales.toLocaleString('en-IN')}`} />
+                <StatCard title="New Requests" value={totalOrders.toString()} subValue={`₹${totalRevenue.toLocaleString('en-IN')}`} />
+            </div>
         </div>
-        <div className="grid lg:grid-cols-1 gap-6">
-            <Card className="lg:col-span-1">
-                <CardHeader>
+        <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Borrowers by State</CardTitle>
+                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <PlatformChart />
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Revenue Overview</CardTitle>
+                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <RevenueChart />
+                </CardContent>
+            </Card>
+        </div>
+         <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Details</CardTitle>
+                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                </CardHeader>
+                <CardContent className="pl-2">
+                     <PlatformChart />
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>New Request Trend</CardTitle>
+                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
                 </CardHeader>
                 <CardContent className="pl-2">
                     <RevenueChart />
