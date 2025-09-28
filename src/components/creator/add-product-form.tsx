@@ -60,6 +60,7 @@ export function AddProductForm() {
     watch,
     reset,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -149,7 +150,7 @@ export function AddProductForm() {
         normalPrice: data.normalPrice,
         currentPrice: data.currentPrice,
         category: data.category,
-        supplierId: data.supplierId,
+        supplierId: getValues('supplierId'),
         sizes: data.sizes?.map(s => s.value) || [],
         colors: data.colors || [],
         isFreeShipping: data.isFreeShipping,
@@ -170,8 +171,10 @@ export function AddProductForm() {
           description: `${data.name} has been sent to the admin for approval.`,
       });
 
+      const currentSupplierId = getValues('supplierId');
       reset({
         name: '', description: '', normalPrice: 0, currentPrice: 0, category: '',
+        supplierId: currentSupplierId,
         isFreeShipping: true, shippingCharge: 0,
         sizes: [], colors: [], images: null,
         stock: undefined,
