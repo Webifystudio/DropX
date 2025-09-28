@@ -132,10 +132,13 @@ export type SupportMessage = {
 };
 
 export type WithdrawalRequest = {
+    id: string;
+    creatorId: string;
     creatorName: string;
     creatorContact: string;
     creatorUpiId: string;
     withdrawalAmount: number;
     currentBalance: number;
-    requestDate: string;
+    requestDate: any; // Firestore Timestamp
+    status: 'pending' | 'paid' | 'rejected';
 }
