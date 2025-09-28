@@ -57,10 +57,10 @@ export async function sendOrderStatusEmail(input: EmailInput): Promise<string> {
 const sendWithdrawalRequestEmailFlow = ai.defineFlow(
   {
     name: 'sendWithdrawalRequestEmailFlow',
-    inputSchema: z.object({ request: z.custom<WithdrawalRequest>() }),
+    inputSchema: z.custom<WithdrawalRequest>(),
     outputSchema: z.string(),
   },
-  async ({ request }) => {
+  async (request) => {
     const emailHtml = render(<WithdrawalRequestEmail request={request} />);
     
     return await sendEmailFlow({
@@ -72,5 +72,5 @@ const sendWithdrawalRequestEmailFlow = ai.defineFlow(
 );
 
 export async function sendWithdrawalRequestEmail(request: WithdrawalRequest): Promise<string> {
-    return await sendWithdrawalRequestEmailFlow({ request });
+    return await sendWithdrawalRequestEmailFlow(request);
 }
