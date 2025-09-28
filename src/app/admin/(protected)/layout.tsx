@@ -4,7 +4,7 @@
 
 import withAuth from '@/components/auth/with-auth';
 import { useAuth } from '@/context/auth-context';
-import { LayoutGrid, Package, Plus, Search, Bell, ShoppingCart, Users, Image as ImageIcon, Truck, Store } from 'lucide-react';
+import { LayoutGrid, Package, Plus, Search, Bell, ShoppingCart, Users, Image as ImageIcon, Truck, Store, GitPullRequest } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +22,7 @@ const sidebarNavItems = [
   { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
   { href: '/admin/products', icon: Package, label: 'Products' },
   { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
+  { href: '/admin/requests', icon: GitPullRequest, label: 'Requests' },
   { href: '/admin/stores', icon: Store, label: 'Stores' },
   { href: '/admin/suppliers', icon: Truck, label: 'Suppliers' },
   { href: '/admin/users', icon: Users, label: 'Users' },
@@ -33,6 +34,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadRequestsCount, setUnreadRequestsCount] = useState(0);
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -49,6 +51,15 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
     });
     return () => unsubscribe();
   }, []);
+  
+  useEffect(() => {
+    const q = query(collection(db, 'products'), where('isActive', '==', false));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setUnreadRequestsCount(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   // The dashboard page is at /admin, but the layout is in /admin/(protected)
   // so we need to adjust the href for the check to work correctly
@@ -86,6 +97,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
                 )}
                  {item.label === 'Orders' && unreadCount > 0 && (
                   <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive"></span>
+                )}
+                {item.label === 'Requests' && unreadRequestsCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-destructive"></span>
                 )}
               </Link>
             )

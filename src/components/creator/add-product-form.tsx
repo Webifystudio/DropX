@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -33,11 +34,7 @@ const productSchema = z.object({
   isFreeShipping: z.boolean().default(true),
   shippingCharge: z.coerce.number().optional(),
   images: z.any(),
-  qrCode: z.any().optional(),
-  paymentButtonText: z.string().optional(),
-  paymentLink: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   stock: z.coerce.number().optional(),
-  isActive: z.boolean().default(true),
 }).refine(data => data.currentPrice <= data.normalPrice, {
     message: "Current price cannot be greater than normal price",
     path: ["currentPrice"],
@@ -54,7 +51,6 @@ export function AddProductForm() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [qrCodePreview, setQrCodePreview] = useState<string | null>(null);
   const { toast } = useToast()
   
   const {
@@ -105,13 +101,6 @@ export function AddProductForm() {
     }
   }
 
-  const handleQrCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-        setQrCodePreview(URL.createObjectURL(file));
-    }
-  }
-
   const uploadToImgBB = async (file: File) => {
     const imgbbApiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
     if (!imgbbApiKey) {
@@ -138,7 +127,6 @@ export function AddProductForm() {
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     let imageUrls: string[] = [];
-    let qrCodeUrl = '';
 
     try {
       if (data.images && data.images.length > 0) {
@@ -167,29 +155,28 @@ export function AddProductForm() {
         isFreeShipping: data.isFreeShipping,
         shippingCharge: data.isFreeShipping ? 0 : data.shippingCharge,
         images: imageUrls,
-        qrCodeUrl: '', // Locked for creators
-        paymentButtonText: '', // Locked for creators
-        paymentLink: '', // Locked for creators
-        stock: data.stock === undefined || data.stock === null ? null : data.stock, // Use null for infinity
-        isActive: data.isActive,
+        qrCodeUrl: '',
+        paymentButtonText: '',
+        paymentLink: '',
+        stock: data.stock === undefined || data.stock === null ? null : data.stock,
+        isActive: false, // Always save as draft
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
 
       await addDoc(collection(db, "products"), productData);
       toast({
-          title: `Product ${data.isActive ? 'Published' : 'Saved as Draft'}!`,
-          description: `${data.name} has been successfully saved.`,
+          title: `Product Submitted for Review!`,
+          description: `${data.name} has been sent to the admin for approval.`,
       });
 
       reset({
         name: '', description: '', normalPrice: 0, currentPrice: 0, category: '',
         isFreeShipping: true, shippingCharge: 0,
-        sizes: [], colors: [], images: null, qrCode: null, paymentButtonText: '', paymentLink: '',
-        stock: undefined, isActive: true,
+        sizes: [], colors: [], images: null,
+        stock: undefined,
       });
       setImagePreviews([]);
-      setQrCodePreview(null);
 
     } catch (error) {
       console.error("Error saving product: ", error)
@@ -203,15 +190,10 @@ export function AddProductForm() {
     }
   }
 
-  const handleFormSubmit = (isActive: boolean) => {
-    setValue('isActive', isActive);
-    handleSubmit(onSubmit)();
-  };
-
   return (
     <Card>
         <CardContent>
-             <form onSubmit={(e) => e.preventDefault()} className="grid gap-6 py-4">
+             <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="name">Product Title</Label>
                     <Input id="name" {...register("name")} />
@@ -347,9 +329,9 @@ export function AddProductForm() {
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg">
                         <Lock className="h-8 w-8 text-muted-foreground" />
                         <p className="mt-2 text-sm font-semibold text-muted-foreground">Admin-only Feature</p>
-                        <p className="text-xs text-muted-foreground">Contact admin to enable direct payments.</p>
+                        <p className="text-xs text-muted-foreground">Payment details are added during approval.</p>
                     </div>
-                    <Label className="font-semibold">Payment Options (Optional)</Label>
+                    <Label className="font-semibold">Payment Options</Label>
                     <div className="space-y-2">
                         <Label htmlFor="qrCode">Payment QR Code</Label>
                         <Input 
@@ -392,11 +374,8 @@ export function AddProductForm() {
                     )}
                 </div>
                 <div className="flex justify-end gap-2">
-                     <Button type="button" variant="outline" onClick={() => handleFormSubmit(false)} disabled={isSubmitting}>
-                        Save Draft
-                    </Button>
-                    <Button type="button" onClick={() => handleFormSubmit(true)} disabled={isSubmitting}>
-                        {isSubmitting ? "Publishing..." : "Publish"}
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Submitting..." : "Submit for Review"}
                     </Button>
                 </div>
             </form>
@@ -404,5 +383,3 @@ export function AddProductForm() {
     </Card>
   )
 }
-
-    

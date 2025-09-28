@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where, addDoc, Timestamp } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,7 +18,6 @@ import type { Creator } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
-import { sendWithdrawalRequestEmail } from '@/ai/flows/send-email-flow';
 import { useRouter } from 'next/navigation';
 
 const withdrawalSchema = z.object({
@@ -68,18 +67,21 @@ function RequestWithdrawalPage() {
         }
 
         try {
-            await sendWithdrawalRequestEmail({
+            // Instead of sending an email, we could create a 'withdrawal_requests' collection entry
+            await addDoc(collection(db, "withdrawal_requests"), {
+                creatorId: creator.creatorId,
                 creatorName: creator.name,
                 creatorContact: creator.contact,
                 creatorUpiId: creator.upiId,
                 withdrawalAmount: data.amount,
                 currentBalance: currentBalance,
-                requestDate: new Date().toLocaleString('en-IN'),
+                requestDate: Timestamp.now(),
+                status: 'pending',
             });
             toast({ title: 'Request Sent!', description: 'Your withdrawal request has been submitted for review.' });
             router.push('/creator/payouts/history');
         } catch (error) {
-            console.error("Error sending withdrawal request email: ", error);
+            console.error("Error sending withdrawal request: ", error);
             toast({ title: 'Error', description: 'Failed to send withdrawal request. Please try again.', variant: 'destructive' });
         }
     };
