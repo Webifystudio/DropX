@@ -124,59 +124,6 @@ function CreatorDashboard() {
   }, [user, setValue]);
 
 
-  const onSubmit = async (data: StoreFormValues) => {
-    if (!user) return;
-
-    try {
-      let logoUrl = store?.logoUrl || '';
-      const imgbbApiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
-
-      if (data.logo && data.logo.length > 0) {
-        if (!imgbbApiKey) {
-            toast({ title: "Error", description: "IMGBB API Key is not configured.", variant: "destructive" });
-            return;
-        }
-        const file = data.logo[0];
-        const formData = new FormData();
-        formData.append("image", file);
-        
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
-          method: "POST",
-          body: formData,
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          logoUrl = result.data.url;
-        } else {
-          throw new Error(`Image upload failed: ${result.error.message}`);
-        }
-      }
-      
-      const storeData = {
-        id: data.name,
-        creatorId: user.uid,
-        creatorEmail: user.email,
-        logoUrl: logoUrl,
-      };
-
-      const storeDocRef = doc(db, 'stores', data.name);
-      await setDoc(storeDocRef, storeData);
-      
-      toast({
-        title: 'Store Updated!',
-        description: 'Your store information has been saved.',
-      });
-    } catch (error) {
-      console.error('Error saving store:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save store information.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const statCards = [
       { title: 'Total Orders', value: orderStats.total, icon: ShoppingCart, color: 'text-blue-500' },
       { title: 'Total Earnings', value: `₹${(creator?.totalEarnings || 0).toLocaleString('en-IN')}`, icon: DollarSign, color: 'text-green-500' },
@@ -198,51 +145,6 @@ function CreatorDashboard() {
           </div>
       )
   }
-  
-  if (!store) {
-     return (
-      <div>
-        <h1 className="text-3xl font-bold font-headline mb-2">Setup Your Store</h1>
-        <p className="text-muted-foreground mb-8">
-            Create your storefront to start selling. Choose a unique name for your store's URL.
-        </p>
-         <Card>
-            <CardHeader>
-            <CardTitle>Create Your Store</CardTitle>
-            <CardDescription>
-                This name will be your unique store URL. It can't be changed later.
-            </CardDescription>
-            </CardHeader>
-            <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                <Label htmlFor="name">Store Name (URL)</Label>
-                <Input
-                    id="name"
-                    {...register('name')}
-                    placeholder="e.g., my-awesome-store"
-                />
-                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                {origin && storeName && (
-                    <p className="text-sm text-muted-foreground">
-                    Your store will be available at: {origin}/<span className="font-medium text-primary">{storeName}</span>
-                    </p>
-                )}
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="logo">Store Logo (Optional)</Label>
-                <Input id="logo" type="file" {...register('logo')} />
-                </div>
-                <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Store'}
-                </Button>
-            </form>
-            </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
 
   return (
     <div className="space-y-8">
