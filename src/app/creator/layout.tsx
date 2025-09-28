@@ -52,7 +52,6 @@ const sidebarNavItems = [
     label: 'Settings',
     subItems: [
         { href: '/creator/settings/general', label: 'General' },
-        { href: '/creator/settings/profile', label: 'Store Profile' },
         { href: '/creator/settings/payments', label: 'Payments & Payouts' },
         { href: '/creator/settings/shipping', label: 'Shipping' },
         { href: '/creator/settings/taxes', label: 'Taxes & Invoices' },
