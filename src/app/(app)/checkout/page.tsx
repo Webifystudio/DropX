@@ -144,7 +144,7 @@ export default function CheckoutPage() {
             items: serializableCartItems,
             shippingAddress: values,
             customerEmail: user.email,
-            resellerName: store?.id || process.env.NEXT_PUBLIC_SITE_NAME || "DropX",
+            resellerName: store?.id || process.env.NEXT_PUBLIC_RESELLER_ID || "DropX",
             resellerId: store?.creatorId || process.env.NEXT_PUBLIC_RESELLER_ID || "default",
             resellerEmail: store?.creatorEmail || 'akirastreamingzone@gmail.com'
         };
