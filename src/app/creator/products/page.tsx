@@ -38,7 +38,7 @@ function CreatorProductsPage() {
                 const currentStoreId = storeDoc.id;
                 setStoreId(currentStoreId);
 
-                const productsQuery = query(collection(db, 'products'), where("supplierId", "==", currentStoreId), where("isActive", "==", true));
+                const productsQuery = query(collection(db, 'products'), where("supplierId", "==", currentStoreId));
                 const unsubscribe = onSnapshot(productsQuery, (snapshot) => {
                     const creatorProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
                     setProducts(creatorProducts);
@@ -65,7 +65,7 @@ function CreatorProductsPage() {
             await updateDoc(productRef, { isActive });
             toast({
                 title: 'Product Updated',
-                description: `Product is now ${isActive ? 'live' : 'a draft'}.`,
+                description: `Product is now ${isActive ? 'live' : 'hidden from the store'}.`,
             });
         } catch (error) {
             toast({
@@ -99,7 +99,7 @@ function CreatorProductsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold font-headline">All Products</h1>
-                <p className="text-muted-foreground">Manage your live product listings and their visibility.</p>
+                <p className="text-muted-foreground">Manage your product listings and their visibility.</p>
             </div>
             
             <Card>
@@ -182,5 +182,3 @@ function CreatorProductsPage() {
 }
 
 export default withCreatorAuth(CreatorProductsPage);
-
-    

@@ -1,13 +1,13 @@
 
 
-import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query, doc, getDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from './types';
 
 export async function getProducts(): Promise<Product[]> {
   try {
     const productsCollection = collection(db, 'products');
-    const q = query(productsCollection, orderBy('createdAt', 'desc'));
+    const q = query(productsCollection, where('isActive', '==', true), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     
     const products = querySnapshot.docs.map(doc => {
